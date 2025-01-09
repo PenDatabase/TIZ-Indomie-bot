@@ -1,0 +1,36 @@
+# Python bytecode files
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environment folder
+venv/
+env/
+
+# Django settings file (if you're using an environment variable for secrets)
+*.env
+
+# SQLite database (if you're using SQLite)
+db.sqlite3
+
+# Django migrations
+*/migrations/*
+
+# Media files (if you're using Django's default storage for user-uploaded media)
+media/
+
+# Static files (if you collect static files for production)
+static/
+
+# pyre-check
+.pyre/
+
+# IDE specific files
+.idea/
+.vscode/
+
+# Mac OS
+.DS_Store
+
+# Windows
+Thumbs.db

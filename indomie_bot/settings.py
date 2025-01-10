@@ -27,6 +27,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-cbpjd#rw11u$d*&%kc2yn8gopy8**y%c*a44pqr5dre$hg%qdv'
 
 TOKEN = os.getenv("TOKEN")
+PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
+WEBSITE_LINK = os.getenv("WEBSITE_LINK")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

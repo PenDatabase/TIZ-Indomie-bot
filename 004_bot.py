@@ -1,5 +1,8 @@
-import os, re, requests, django, telebot
-
+import os
+import django
+import re
+import requests
+import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton, ForceReply
 
 # Set up Django environment
@@ -9,9 +12,12 @@ django.setup()
 from django.conf import settings
 from bot.models import Product, Order, OrderItem
 
+
+
+
+
 # Initialize the bot with the token
 bot = telebot.TeleBot(settings.TOKEN)
-website_link = settings.WEBSITE_LINK
 
 # Dictionary to track user orders
 user_orders = {}
@@ -84,10 +90,11 @@ def view_cart(message):
 
         # Add buttons for checkout and remove
         checkout_single = InlineKeyboardButton("Checkout an Order", callback_data="checkout_single_order")
+        checkout_all = InlineKeyboardButton("Checkout All Orders", callback_data="checkout_all_orders")
         remove_from_cart = InlineKeyboardButton("Remove an Order from Cart", callback_data="remove_order_cart")
 
         # Add buttons to the markup
-        markup.add(checkout_single, remove_from_cart)
+        markup.add(checkout_single, checkout_all, remove_from_cart)
 
         bot.send_message(message.chat.id, msg, parse_mode="Markdown", reply_markup=markup)
     else:
@@ -222,11 +229,10 @@ def checkout_single_order(call):
 
 
 
-# Handle the checkout for a single order
 @bot.callback_query_handler(func=lambda call: call.data.startswith("checkout_order_"))
 def process_single_checkout(call):
     """
-    Handles the checkout for a specific order and redirects to Paystack for payment.
+    Handles the checkout for a specific order.
     """
     order_id = int(call.data.split("_")[2])
     try:
@@ -239,20 +245,51 @@ def process_single_checkout(call):
             total_amount += item.product.price * item.quantity
             item_details += f"- {item.product.title} x{item.quantity} (₦{item.product.price * item.quantity})\n"
 
-        # Create a Paystack transaction request
-        payment_url = create_paystack_payment(total_amount, order_id)
-
-        # Send message with payment link
         bot.send_message(
             call.message.chat.id,
             f"You're checking out Order #{order_id}:\n{item_details}\nTotal: ₦{total_amount}\n\n"
-            "Click the link below to complete your payment:\n" + payment_url
+            "Proceeding to payment."
         )
         order.save()
+
+        bot.send_message(call.message.chat.id, f"Order #{order_id} has been successfully checked out.")
     except Order.DoesNotExist:
         bot.send_message(call.message.chat.id, "Order not found or already checked out.")
     
     bot.answer_callback_query(call.id)
+
+
+
+@bot.callback_query_handler(func=lambda call: call.data == "checkout_all_orders")
+def checkout_all_orders(call):
+    """
+    Handles the checkout for all orders in the user's cart.
+    """
+    user_id = call.from_user.id
+    orders = Order.objects.filter(user_id=user_id, completed=False)
+
+    if orders.exists():
+        total_amount = 0
+        msg = "You're checking out the following orders:\n\n"
+
+        for order in orders:
+            items = OrderItem.objects.filter(order=order)
+            item_details = ""
+            for item in items:
+                total_amount += item.product.price * item.quantity
+                item_details += f"- {item.product.title} x{item.quantity} (₦{item.product.price * item.quantity})\n"
+
+            msg += f"Order #{order.id}:\n{item_details}\n\n"
+
+            order.save()
+
+        msg += f"Total for all orders: ₦{total_amount}\n\nProceeding to payment."
+        bot.send_message(call.message.chat.id, msg)
+    else:
+        bot.send_message(call.message.chat.id, "Your cart is empty.")
+
+    bot.answer_callback_query(call.id)
+
 
 
 
@@ -264,33 +301,6 @@ def handle_other_callbacks(call):
 
     bot.answer_callback_query(call.id)
 # ======================= HELPER FUNCTIONS =======================
-
-
-
-def create_paystack_payment(amount, order_id):
-    """
-    Creates a Paystack payment link and returns the URL to redirect the user for payment.
-    """
-    headers = {
-        'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
-    }
-
-    data = {
-        'amount': amount * 100,  # Convert to kobo (Paystack expects the amount in kobo)
-        'email': 'user_email@example.com',  # Replace with the user's email
-        'order_id': order_id,  # Your custom order ID (you may pass this from your order model)
-        'callback_url': f'{website_link}/paystack/callback/?order_id={order_id}',  # Include order_id in callback URL
-    }
-
-    response = requests.post('https://api.paystack.co/transaction/initialize', headers=headers, data=data)
-    response_data = response.json()
-
-    if response_data['status']:
-        payment_url = response_data['data']['authorization_url']
-        return payment_url
-    else:
-        return None
-
 
 
 

@@ -279,7 +279,7 @@ def create_paystack_payment(amount, order_id):
         'amount': amount * 100,  # Convert to kobo (Paystack expects the amount in kobo)
         'email': 'user_email@example.com',  # Replace with the user's email
         'order_id': order_id,  # Your custom order ID (you may pass this from your order model)
-        'callback_url': f'{website_link}/paystack/callback/?order_id={order_id}',  # Include order_id in callback URL
+        'callback_url': f'{website_link}paystack/callback/?order_id={order_id}',  # Include order_id in callback URL
     }
 
     response = requests.post('https://api.paystack.co/transaction/initialize', headers=headers, data=data)

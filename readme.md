@@ -127,10 +127,12 @@ pip freeze > requirements.txt
 
 ## Configuration
 
-### Setting Up the Token
-- Ensure you have added your bot's token to a `.env` file as follows:
+### Setting Up the environment
+- Ensure you have added your bot's token, paystack secret key and website_link e.g "http://127.0.0.1:8000/" to a `.env` file as follows:
   ```bash
   TOKEN=your-telegram-bot-token-here
+  PAYSTACK_SECRET_KEY=your-paystack-secret-key
+  WEBSITE=your-website-key
   ```
 
 ### Database Configuration

@@ -15,7 +15,8 @@ class Order(models.Model):
     user_id = models.IntegerField()
     username = models.CharField(max_length=255)
     hall = models.CharField(max_length=255)
-    romm_no = models.CharField(max_length=255)
+    room_no = models.CharField(max_length=255)
+    completed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.id} - username"
@@ -23,7 +24,7 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    order = models.ForeignKey(Order, on_delete=models.PROTECT)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
     quantity = models.IntegerField()
 
     def __str__(self):

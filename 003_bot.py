@@ -74,17 +74,12 @@ def view_cart(message):
         for order in orders:
             items = OrderItem.objects.filter(order=order)
             for item in items:
-                msg += f"Order #{order.id}\n"
+                msg += f"Order id: *{order.id}*\n"
                 msg += f"_{item.product.title}_ x{item.quantity} (₦{item.product.price * item.quantity})\n"
                 msg += f"To be delivered to: *{order.room_no}*\n\n"
         msg += "\nUse /checkout to complete your order."
 
-        #added remove from cart functionalities 
-        markup = InlineKeyboardMarkup()
-        remove_from_cart = InlineKeyboardButton("Remove an order from cart", callback_data="remove_order_cart")
-        markup.add(remove_from_cart)
-
-        bot.send_message(message.chat.id, msg, parse_mode="Markdown", reply_markup=markup)
+        bot.send_message(message.chat.id, msg, parse_mode="Markdown")
     else:
         bot.send_message(message.chat.id, "Your cart is empty.")
 
@@ -157,51 +152,6 @@ def get_product(call):
         msg = "Sorry, this product does not exist."
         markup = None
     bot.send_message(call.message.chat.id, msg, parse_mode="Markdown", reply_markup=markup)
-    bot.answer_callback_query(call.id)
-
-
-# Handle "Remove an order from cart" callback
-@bot.callback_query_handler(func=lambda call: call.data == "remove_order_cart")
-def handle_remove_order_cart(call):
-    """
-    Handles the removal of an entire order from the cart.
-    """
-    user_id = call.from_user.id
-    orders = Order.objects.filter(user_id=user_id, completed=False)
-    
-    if orders.exists():
-        # Create buttons for each order
-        markup = InlineKeyboardMarkup()
-        for order in orders:
-            total_items = OrderItem.objects.filter(order=order).count()
-            callback_data = f"remove_order_{order.id}"  # Use order ID for removal
-            markup.add(InlineKeyboardButton(f"Order #{order.id} \nItem quantity: ({total_items})", callback_data=callback_data))
-        
-        bot.send_message(call.message.chat.id, "Select an order to remove:", reply_markup=markup)
-    else:
-        bot.send_message(call.message.chat.id, "Your cart is empty.")
-    
-    bot.answer_callback_query(call.id)
-
-# Handle specific order removal
-@bot.callback_query_handler(func=lambda call: call.data.startswith("remove_order_"))
-def handle_remove_order(call):
-    """
-    Handles the removal of a specific order.
-    """
-    order_id = int(call.data.split("_")[2])  # Extract order ID from callback data
-    
-    try:
-        # Find and delete the order along with its items
-        order = Order.objects.get(id=order_id)
-        order.delete()
-        
-        msg = f"Order *#{order_id}* has been removed from your cart. \nClick /cart and confirm"
-        
-        bot.send_message(call.message.chat.id, msg, parse_mode="Markdown")
-    except Order.DoesNotExist:
-        bot.send_message(call.message.chat.id, "Order not found. Please try again.")
-    
     bot.answer_callback_query(call.id)
 
 

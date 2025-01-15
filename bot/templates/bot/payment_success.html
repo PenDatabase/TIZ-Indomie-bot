@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Include jsPDF library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+  <div id="confirmation-container" class="bg-white shadow-lg rounded-lg p-8 max-w-xl w-full">
+    <div class="text-center">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-16 w-16 text-green-500 mx-auto mb-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 12l2 2l4-4m1-7a9 9 0 11-18 0a9 9 0 0118 0z"
+        />
+      </svg>
+      <h1 class="text-2xl font-semibold text-gray-800 mb-2">Payment Successful</h1>
+      <p class="text-gray-600 mb-6">Thank you for your order! Below are the details of your purchase:</p>
+    </div>
+
+    <div id="order-details" class="space-y-4">
+      <div>
+        <h2 class="text-lg font-medium text-gray-700">Order ID:</h2>
+        <p class="text-gray-600" id="order-id">Loading...</p>
+      </div>
+
+      <div>
+        <h2 class="text-lg font-medium text-gray-700">Customer Name:</h2>
+        <p class="text-gray-600" id="customer-name">Loading...</p>
+      </div>
+
+      <div>
+        <h2 class="text-lg font-medium text-gray-700">Delivery Address:</h2>
+        <p class="text-gray-600" id="delivery-address">Loading...</p>
+      </div>
+
+      <div>
+        <h2 class="text-lg font-medium text-gray-700">Products:</h2>
+        <ul class="list-disc pl-5 text-gray-600" id="product-list">
+          <li>Loading...</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-6 text-center space-y-4">
+      <a
+        href="https://t.me/indomie_order_bot"
+        class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg"
+      >
+        Back to Bot
+      </a>
+      <br>
+      <button
+        id="download-receipt"
+        class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg"
+      >
+        Download Receipt
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Fetch order details from the API
+    async function fetchOrderDetails() {
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("order_id");
+      
+      if (!orderId) {
+        document.getElementById("order-details").innerHTML =
+          "<p class='text-red-500'>Order ID not found in the URL.</p>";
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/orders/${orderId}/`);
+        if (!response.ok) throw new Error("Failed to fetch order details");
+
+        const data = await response.json();
+
+        // Update the UI with the fetched details
+        document.getElementById("order-id").textContent = data.id;
+        document.getElementById("customer-name").textContent = data.full_name;
+        document.getElementById("delivery-address").textContent = `${data.hall}, Room ${data.room_no}`;
+
+        const productList = data.items.map(
+          (item) => `<li>${item.product.title} x ${item.quantity}</li>`
+        );
+        document.getElementById("product-list").innerHTML = productList.join("");
+
+        // Attach data to download button
+        attachDownloadReceipt(data);
+      } catch (error) {
+        console.error("Error fetching order details:", error);
+        document.getElementById("order-details").innerHTML =
+          "<p class='text-red-500'>Failed to load order details. Please try again later.</p>";
+      }
+    }
+
+    // Attach the receipt data to the download button
+    function attachDownloadReceipt(data) {
+      const downloadButton = document.getElementById("download-receipt");
+      downloadButton.addEventListener("click", () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Define receipt content
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text("Order Receipt", 10, 10);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Order ID: ${data.id}`, 10, 20);
+        doc.text(`Customer Name: ${data.full_name}`, 10, 30);
+        doc.text(`Delivery Address: ${data.hall}, Room ${data.room_no}`, 10, 40);
+
+        doc.text("Products:", 10, 50);
+        data.items.forEach((item, index) => {
+          doc.text(
+            `${index + 1}. ${item.product.title} x ${item.quantity}`,
+            15,
+            60 + index * 10
+          );
+        });
+
+        doc.text("Thank you for your purchase!", 10, 90);
+
+        // Save PDF
+        doc.save(`Order_${data.id}_Receipt.pdf`);
+      });
+    }
+
+    // Call the function to fetch and display order details
+    fetchOrderDetails();
+  </script>
+</body>
+</html>

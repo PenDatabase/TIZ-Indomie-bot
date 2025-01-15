@@ -19,7 +19,7 @@ user_orders = {}
 # ======================= COMMAND HANDLERS =======================
 
 # /start command handler
-@bot.message_handler(commands=["start"])
+@bot.message_handler(commands=["jkshhoj"])
 def start(message):
     """
     Handles the /start command. Greets the user and suggests available options.
@@ -28,7 +28,7 @@ def start(message):
 
 
 # /list command handler
-@bot.message_handler(commands=["list"])
+@bot.message_handler(commands=["start"])
 def listing(message):
     """
     Handles the /list command. Displays a menu with options for the user.
@@ -36,7 +36,7 @@ def listing(message):
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("Products", callback_data="products"))
     markup.add(InlineKeyboardButton("Help", callback_data="help"))
-    bot.send_message(message.chat.id, "Here are a list of options to choose from:", reply_markup=markup)
+    bot.send_message(message.chat.id, "Welcome to Indomie Bot\nHere are a list of options to choose from:", reply_markup=markup)
 
 
 # /products command handler - List products
@@ -108,7 +108,7 @@ def handle_order_callback(call):
     """
     product_id = int(call.data.split("_")[1])
     user_orders[call.from_user.id] = {"product_id": product_id, "quantity": None, "hall": None, "room_no": None}
-    bot.send_message(call.message.chat.id, "Please enter the quantity:")
+    bot.send_message(call.message.chat.id, "Please enter the quantity of the product you want to order e.g 5, 3:")
     bot.register_next_step_handler(call.message, get_quantity)
     
     bot.answer_callback_query(call.id)
@@ -127,7 +127,7 @@ def handle_hall_selection(call):
         bot.answer_callback_query(call.id)
         
         # Ask for room number
-        msg = bot.send_message(call.message.chat.id, f"So you are located in *{hall} hall* \nNow enter your room number:", parse_mode="Markdown")
+        msg = bot.send_message(call.message.chat.id, f"So you are located in *{hall} hall* \nNow enter your room number e.g. A204, B108:", parse_mode="Markdown")
         bot.register_next_step_handler(msg, get_room_no)
     else:
         # Debug: User order not found
@@ -147,7 +147,7 @@ def get_product(call):
         product = Product.objects.get(id=product_id)
         msg = f"*{product.title} - ₦{product.price}*\n{product.description}"
         markup = InlineKeyboardMarkup()
-        markup.add(InlineKeyboardButton("Place Order", callback_data=f"order_{product.id}"))
+        markup.add(InlineKeyboardButton("Add to Cart", callback_data=f"order_{product.id}"))
     except Product.DoesNotExist:
         msg = "Sorry, this product does not exist."
         markup = None
@@ -303,15 +303,8 @@ def get_quantity(message):
         user_id = message.from_user.id
         if user_id in user_orders:
             user_orders[user_id]["quantity"] = quantity
-            # Show hall options with buttons
-            markup = InlineKeyboardMarkup()
-            markup.add(
-                InlineKeyboardButton("Paul Hall", callback_data="hall_Paul"),
-                InlineKeyboardButton("Joseph Hall", callback_data="hall_Joseph"),
-                InlineKeyboardButton("Mary Hall", callback_data="hall_Mary"),
-                InlineKeyboardButton("Others", callback_data="hall_Others"),
-            )
-            bot.send_message(message.chat.id, "Choose your hall:", reply_markup=markup)
+            msg = bot.send_message(message.chat.id, "What's the fullname of person order is to be delivered to?")
+            bot.register_next_step_handler(msg, get_fullname)
         else:
             bot.reply_to(message, "No active order found.")
     except ValueError:
@@ -319,44 +312,70 @@ def get_quantity(message):
         bot.register_next_step_handler(message, get_quantity)  # Retry quantity input
 
 
+def get_fullname(message):
+    fullname = message.text
+    user_id = message.from_user.id
+
+    if user_id in user_orders:
+        user_orders[user_id]["fullname"] = fullname
+        
+        # Show hall options with buttons
+        markup = InlineKeyboardMarkup()
+        markup.add(
+            InlineKeyboardButton("Paul Hall", callback_data="hall_Paul"),
+            InlineKeyboardButton("Joseph Hall", callback_data="hall_Joseph"),
+            InlineKeyboardButton("Mary Hall", callback_data="hall_Mary"),
+            InlineKeyboardButton("Others", callback_data="hall_Others"),
+        )
+        bot.send_message(message.chat.id, "Choose your hall:", reply_markup=markup)
+    else:
+        bot.reply_to(message, "No active order found")
+
+
 def get_room_no(message):
     """
     Handles room number input and saves the order.
     """
-    room_no = message.text
-    pattern = "^[A-G]{1}+[1-4]{1}+[0-8]{2}$"
-    if re.match(pattern, room_no):
-        bot.reply_to(message, f"Your room number is {room_no}")
-    else:
-        bot.reply_to(message, "Please enter a valid Room number (e.g., A203).")
-        bot.register_next_step_handler(message, get_room_no)
-        return # Exit function if invalid
-
-    user_id = message.from_user.id
-    if user_id in user_orders:
-        user_orders[user_id]["room_no"] = room_no
-        order_data = user_orders[user_id]
-
-        # Save the incomplete order to the database
-        product = Product.objects.get(id=order_data["product_id"])
-        order, created = Order.objects.get_or_create(
-            user_id=message.from_user.id,
-            username=message.from_user.username or "Anonymous",
-            hall=order_data["hall"],
-            room_no=order_data["room_no"],
-            completed=False,
-        )
-        if created:
-            OrderItem.objects.create(order=order, product=product, quantity=order_data["quantity"])
+    try:
+        room_no = message.text
+        pattern = "^[A-G]{1}+[1-4]{1}+[0-8]{2}$"
+        if re.match(pattern, room_no):
+            bot.reply_to(message, f"Your room number is {room_no}")
         else:
-            bot.reply_to(message, "Something went wrong. Please try again.")
+            bot.reply_to(message, "Please enter a valid Room number (e.g., A203).")
+            bot.register_next_step_handler(message, get_room_no)
+            return # Exit function if invalid
 
-        bot.send_message(
-            message.chat.id,
-            f"Order for {product.title} added to cart. Use /cart to view your cart."
-        )
-    else:
-        bot.reply_to(message, "No active order found.")
+        user_id = message.from_user.id
+        if user_id in user_orders:
+            user_orders[user_id]["room_no"] = room_no
+            order_data = user_orders[user_id]
+
+            # Save the incomplete order to the database
+            product = Product.objects.get(id=order_data["product_id"])
+            order, created = Order.objects.get_or_create(
+                user_id=message.from_user.id,
+                full_name = order_data["fullname"],
+                username=message.from_user.username or "Anonymous",
+                hall=order_data["hall"],
+                room_no=order_data["room_no"],
+                completed=False,
+            )
+            if created:
+                OrderItem.objects.create(order=order, product=product, quantity=order_data["quantity"])
+                bot.send_message(
+                    message.chat.id,
+                    f"Order for {product.title} added to cart. Use /cart to view your cart."
+                )
+            else:
+                raise Exception
+
+        else:
+            bot.reply_to(message, "No active order found.")
+
+    except Exception as e:
+        bot.reply_to(message, "Sorry, something went wrong \nThis is probably from our end and not yours \nPlease try again later")
+        print(e)
 
 # ======================= BOT STARTUP =======================
 

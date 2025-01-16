@@ -15,10 +15,12 @@ class Product(models.Model):
 class Order(models.Model):
     user_id = models.IntegerField()
     username = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255, null=True, blank=True)
     full_name = models.CharField(max_length=255, null=True, blank=True)
     hall = models.CharField(max_length=255)
     room_no = models.CharField(max_length=255)
-    completed = models.BooleanField(default=False)
+    payed = models.BooleanField(default=False)
+    delivery_status = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.id} - username"

@@ -38,7 +38,7 @@ WEBSITE_LINK = os.getenv("WEBSITE_LINK")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["127.0.0.1", "web-production-ca050.up.railway.app",]
+ALLOWED_HOSTS = ["127.0.0.1", "web-production-ca050.up.railway.app"]
 
 
 # Application definition
@@ -157,7 +157,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 

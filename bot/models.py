@@ -1,5 +1,4 @@
 from django.db import models
-import uuid
 
 
 
@@ -23,7 +22,7 @@ class Order(models.Model):
     delivery_status = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.id} - username"
+        return f"{self.id} - {self.username}"
 
     def save(self, *args, **kwargs):
         if not self.full_name:
@@ -37,4 +36,4 @@ class OrderItem(models.Model):
     quantity = models.IntegerField()
 
     def __str__(self):
-        return f"{self.product}"
+        return f"Product: {self.product.title}, Quantity: {self.quantity}, Order ID: {self.order.id}"

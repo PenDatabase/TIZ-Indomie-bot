@@ -33,7 +33,7 @@ WEBSITE_LINK = os.getenv("WEBSITE_LINK")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["127.0.0.1"]
+ALLOWED_HOSTS = ["127.0.0.1", WEBSITE_LINK]
 
 
 # Application definition

@@ -1,33 +1,40 @@
-import os, re, requests, django, telebot
+# Please do not use this view unless webhook have been set up correctly
 
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton, ForceReply
 
-# Set up Django environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "indomie_bot.settings")
-django.setup()
 
+
+
+import requests
+import re
+import json
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
-from bot.models import Product, Order, OrderItem
+from django.shortcuts import get_object_or_404, render
+from django.db import transaction
+from .models import Order, Product, OrderItem
+
+# telebot imports
+import telebot
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+
+
 
 # Initialize the bot with the token
 bot = telebot.TeleBot(settings.TOKEN)
 website_link = settings.WEBSITE_LINK
 
+
+
 # Dictionary to track user orders
 user_orders = {}
+
 
 # ======================= COMMAND HANDLERS =======================
 
 # /start command handler
-@bot.message_handler(commands=["jkshhoj"])
-def start(message):
-    """
-    Handles the /start command. Greets the user and suggests available options.
-    """
-    bot.reply_to(message, "Welcome! Select /list to see what I can do.")
-
-
-# /list command handler
 @bot.message_handler(commands=["start"])
 def listing(message):
     """
@@ -68,13 +75,13 @@ def view_cart(message):
     Displays the user's cart with options to checkout, remove orders, or clear the cart.
     """
     user_id = message.from_user.id
-    orders = Order.objects.filter(user_id=user_id, completed=False)
+    orders = Order.objects.filter(user_id=user_id, payed=False)
 
     if orders.exists():
         msg = "Your cart:\n\n"
         markup = InlineKeyboardMarkup()
 
-        # List all incomplete orders
+        # List all unpayed orders
         for order in orders:
             items = OrderItem.objects.filter(order=order)
             order_details = ""
@@ -94,9 +101,48 @@ def view_cart(message):
         bot.send_message(message.chat.id, "Your cart is empty.")
 
 
+# /payed_orders command handler
+@bot.message_handler(commands=["payed_orders"])
+def payed_orders(message):
+    """
+    Displays the users payed orders and their delivery status
+    """
+    user_id = message.from_user.id
+    orders = Order.objects.filter(user_id=user_id, payed=True)
+
+    if orders.exists():
+        msg = "*Your Checked out Orders*\n\n"
+
+        for order in orders:
+            items = OrderItem.objects.filter(order=order).select_related("product")
+            order_details = ""
+            for item in items:
+                order_details += f"{item.product.title} x {item.quantity} - (₦{item.product.price * item.quantity}) \n*Delivered: {order.delivery_status}*"
+            msg += f"Order #{order.id}: \n{order_details}\n\n"
+
+        bot.send_message(message.chat.id, msg, parse_mode="Markdown")
+    else:
+        bot.send_message(message.chat.id, "You haven't checked out any orders \nUse /cart to view unpayed orders \nUse /checkout to checkout an order \nUse /products to view available products")
 
 
 
+# /checkout command handler
+@bot.message_handler(commands=["checkout"])
+def checkout_single_order_command(message):
+    """
+    Prompt the user to select a single order to checkout.
+    """
+    user_id = message.from_user.id
+    orders = Order.objects.filter(user_id=user_id, payed=False)
+
+    if orders.exists():
+        markup = InlineKeyboardMarkup()
+        for order in orders:
+            markup.add(InlineKeyboardButton(f"Order #{order.id}", callback_data=f"checkout_order_{order.id}"))
+        bot.send_message(message.chat.id, "Select an order to checkout:", reply_markup=markup)
+
+    bot.send_message(message.chat.id, "You have no incomplete orders to checkout.")
+    
 
 # ======================= CALLBACK HANDLERS =======================
 
@@ -162,7 +208,7 @@ def handle_remove_order_cart(call):
     Handles the removal of an entire order from the cart.
     """
     user_id = call.from_user.id
-    orders = Order.objects.filter(user_id=user_id, completed=False)
+    orders = Order.objects.filter(user_id=user_id, payed=False)
     
     if orders.exists():
         # Create buttons for each order
@@ -207,7 +253,7 @@ def checkout_single_order(call):
     Prompt the user to select a single order to checkout.
     """
     user_id = call.from_user.id
-    orders = Order.objects.filter(user_id=user_id, completed=False)
+    orders = Order.objects.filter(user_id=user_id, payed=False)
 
     if orders.exists():
         markup = InlineKeyboardMarkup()
@@ -222,7 +268,7 @@ def checkout_single_order(call):
 
 
 
-# Handle the checkout for a single order
+# Handle the checkout callback for a single order
 @bot.callback_query_handler(func=lambda call: call.data.startswith("checkout_order_"))
 def process_single_checkout(call):
     """
@@ -230,7 +276,7 @@ def process_single_checkout(call):
     """
     order_id = int(call.data.split("_")[2])
     try:
-        order = Order.objects.get(id=order_id, completed=False)
+        order = Order.objects.get(id=order_id, payed=False)
         total_amount = 0
         items = OrderItem.objects.filter(order=order)
         item_details = ""
@@ -256,7 +302,7 @@ def process_single_checkout(call):
 
 
 
-
+# Handle other callbacks without specific query handlers
 @bot.callback_query_handler(func=lambda call: True)
 def handle_other_callbacks(call):
     if call.data == "products":
@@ -303,13 +349,26 @@ def get_quantity(message):
         user_id = message.from_user.id
         if user_id in user_orders:
             user_orders[user_id]["quantity"] = quantity
-            msg = bot.send_message(message.chat.id, "What's the fullname of person order is to be delivered to?")
-            bot.register_next_step_handler(msg, get_fullname)
+            msg = bot.send_message(message.chat.id, "What's your email?")
+            bot.register_next_step_handler(msg, get_email)
         else:
             bot.reply_to(message, "No active order found.")
     except ValueError:
         bot.reply_to(message, "Please enter a valid number for the quantity.")
         bot.register_next_step_handler(message, get_quantity)  # Retry quantity input
+
+
+def get_email(message):
+    email = message.text
+    user_id = message.from_user.id
+
+    if user_id in user_orders:
+        user_orders[user_id]["email"] = email
+        msg = bot.send_message(message.chat.id, "What's the fullname of person order is to be delivered to?")
+        bot.register_next_step_handler(msg, get_fullname)
+    else:
+        bot.reply_to(message, "No active order found")
+
 
 
 def get_fullname(message):
@@ -324,12 +383,21 @@ def get_fullname(message):
         markup.add(
             InlineKeyboardButton("Paul Hall", callback_data="hall_Paul"),
             InlineKeyboardButton("Joseph Hall", callback_data="hall_Joseph"),
+            InlineKeyboardButton("Peter Hall", callback_data="hall_Mary"),
+            InlineKeyboardButton("John Hall", callback_data="hall_John"),
+            InlineKeyboardButton("Daniel Hall", callback_data="hall_Daniel"),
             InlineKeyboardButton("Mary Hall", callback_data="hall_Mary"),
-            InlineKeyboardButton("Others", callback_data="hall_Others"),
+            InlineKeyboardButton("Lydia Hall", callback_data="hall_Lydia"),
+            InlineKeyboardButton("Deborah Hall", callback_data="hall_Deborah"),
+            InlineKeyboardButton("Dorcas Hall", callback_data="hall_Dorcas"),
+            InlineKeyboardButton("Esther Hall", callback_data="hall_Esther"),
         )
         bot.send_message(message.chat.id, "Choose your hall:", reply_markup=markup)
     else:
         bot.reply_to(message, "No active order found")
+
+
+
 
 
 def get_room_no(message):
@@ -358,8 +426,9 @@ def get_room_no(message):
                 full_name = order_data["fullname"],
                 username=message.from_user.username or "Anonymous",
                 hall=order_data["hall"],
+                email = order_data["email"],
                 room_no=order_data["room_no"],
-                completed=False,
+                payed=False,
             )
             if created:
                 OrderItem.objects.create(order=order, product=product, quantity=order_data["quantity"])
@@ -377,8 +446,107 @@ def get_room_no(message):
         bot.reply_to(message, "Sorry, something went wrong \nThis is probably from our end and not yours \nPlease try again later")
         print(e)
 
-# ======================= BOT STARTUP =======================
 
-if __name__ == "__main__":
-    print("Indomie Bot is running")
-    bot.polling(none_stop=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def get_order_details(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    items = OrderItem.objects.filter(order=order).select_related("product")
+    data = {
+        "id": order.id,
+        "full_name": order.full_name,
+        "hall": order.hall,
+        "room_no": order.room_no,
+        "items": [{"product": {"title": item.product.title}, "quantity": item.quantity} for item in items],
+    }
+    return JsonResponse(data)
+
+
+
+
+
+@csrf_exempt
+def paystack_callback(request):
+    if request.method == "GET":
+        payment_reference = request.GET.get("reference")
+        trxref = request.GET.get("trxref")
+        order_id = request.GET.get("order_id")
+
+        if not payment_reference or not trxref:
+            return JsonResponse({"status": "error", "message": "Missing reference or trxref."}, status=400)
+
+        headers = {
+            "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+        }
+        verification_url = f"https://api.paystack.co/transaction/verify/{trxref}"
+        response = requests.get(verification_url, headers=headers)
+
+        payment_data = response.json()
+
+        if payment_data["status"] and payment_data["data"]["status"] == "success":
+            try:
+                order = Order.objects.get(id=order_id)
+                with transaction.atomic():
+                    order.payed = True
+                    order.save()
+
+                return render(
+                    request,
+                    "bot/payment_success.html",
+                    {
+                        "order_id": order.id,
+                        "full_name": order.full_name,
+                        "hall": order.hall,
+                        "room_no": order.room_no,
+                        "items": order.orderitem_set.select_related("product"),
+                    },
+                )
+            except Order.DoesNotExist:
+                return JsonResponse({"status": "error", "message": "Order not found."})
+        else:
+            error_message = payment_data.get("message", "Unknown error occurred.")
+            return render(
+                request,
+                "bot/payment_failed.html",
+                {"error_message": error_message, "reference": payment_reference},
+            )
+
+    return JsonResponse({"status": "error", "message": "Invalid request."}, status=400)
+
+
+
+# Webhook Endpoint
+@csrf_exempt
+def telegram_webhook(request):
+    if request.method == "POST":
+        try:
+            # Log the raw request body for debugging
+            raw_body = request.body.decode("UTF-8")
+            print(f"Raw request body: {raw_body}")
+
+            # Parse the JSON data
+            json_data = json.loads(raw_body)
+            print(f"Parsed JSON: {json_data}")
+
+            # Process the update
+            update = telebot.types.Update.de_json(json_data)
+            bot.process_new_updates([update])
+
+            return JsonResponse({"status": "ok"})
+        except Exception as e:
+            print(f"Error processing webhook: {str(e)}")
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+    return JsonResponse({"status": "invalid method"}, status=405)

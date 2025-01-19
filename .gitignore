@@ -13,7 +13,7 @@ env/
 # SQLite database (if you're using SQLite)
 db.sqlite3
 
-telegram bot/
+extras/
 
 # Django migrations
 */migrations/*

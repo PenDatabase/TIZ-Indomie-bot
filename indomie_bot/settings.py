@@ -28,6 +28,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
+
+TELEGRAM_URL = os.getenv("TELEGRAM_URL")
 TOKEN = os.getenv("TOKEN")
 PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
 WEBSITE_LINK = os.getenv("WEBSITE_LINK")

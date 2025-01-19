@@ -16,8 +16,11 @@ import telebot
 # Initialize the bot with the token
 bot = telebot.TeleBot(settings.TOKEN)
 website_link = settings.WEBSITE_LINK
+telegram_url = settings.TELEGRAM_URL
 
 
+def home(request):
+    return render(request, "bot/home.html")
 
 
 
@@ -66,6 +69,7 @@ def paystack_callback(request):
                     request,
                     "bot/payment_success.html",
                     {
+                        "telegram_url": telegram_url,
                         "order_id": order.id,
                         "full_name": order.full_name,
                         "hall": order.hall,
@@ -80,7 +84,7 @@ def paystack_callback(request):
             return render(
                 request,
                 "bot/payment_failed.html",
-                {"error_message": error_message, "reference": payment_reference,},
+                {"error_message": error_message, "reference": payment_reference, "telegram_url": telegram_url},
             )
 
     return JsonResponse({"status": "error", "message": "Invalid request."}, status=400)

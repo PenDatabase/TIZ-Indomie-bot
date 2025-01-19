@@ -36,7 +36,7 @@ WEBSITE_LINK = os.getenv("WEBSITE_LINK")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["127.0.0.1", WEBSITE_LINK]
+ALLOWED_HOSTS = ["127.0.0.1", "web-production-ca050.up.railway.app",]
 
 
 # Application definition

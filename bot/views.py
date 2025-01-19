@@ -1,18 +1,15 @@
 import requests
-import re
-import json
+
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from django.db import transaction
-from .models import Order, Product, OrderItem
+from .models import Order, OrderItem
 
 # telebot imports
 import telebot
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
-
 
 
 

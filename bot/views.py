@@ -83,7 +83,7 @@ def paystack_callback(request):
             return render(
                 request,
                 "bot/payment_failed.html",
-                {"error_message": error_message, "reference": payment_reference},
+                {"error_message": error_message, "reference": payment_reference,},
             )
 
     return JsonResponse({"status": "error", "message": "Invalid request."}, status=400)

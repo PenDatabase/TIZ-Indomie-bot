@@ -1,11 +1,10 @@
-import os, re, requests, django, telebot
+import re
+import requests
+import telebot
 
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton, ForceReply
 
-# Set up Django environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "indomie_bot.settings")
-django.setup()
-
+# Now import models after setup
 from django.conf import settings
 from bot.models import Product, Order, OrderItem
 
@@ -442,6 +441,6 @@ def get_room_no(message):
 
 # ======================= BOT STARTUP =======================
 
-if __name__ == "__main__":
+def start_bot():
     print("Indomie Bot is running")
     bot.polling(none_stop=True)

@@ -3,11 +3,11 @@ import os, re, requests, django, telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton, ForceReply
 
 # Set up Django environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "indomie_bot.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "web.indomie_bot.settings")
 django.setup()
 
 from django.conf import settings
-from bot.models import Product, Order, OrderItem
+from web.bot.models import Product, Order, OrderItem
 
 # Initialize the bot with the token
 bot = telebot.TeleBot(settings.TOKEN)

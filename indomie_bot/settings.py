@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from dotenv import load_dotenv
-from urllib.parse import urlparse
+
 import os
 
 
@@ -88,29 +88,15 @@ WSGI_APPLICATION = 'indomie_bot.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# Database Configuration for Railway
-DATABASE_URL = os.getenv('DATABASE_URL')
+# Database configuration
+DATABASE_URL = os.getenv('DATABASE_URL')  # Replace 'DATABASE_URL' with your Railway-provided environment variable name if different.
 
 if DATABASE_URL:
-    parsed_db_url = urlparse(DATABASE_URL)
-    print(f"Database URL: {DATABASE_URL}")
-    print(f"Host: {parsed_db_url.hostname}")
-    print(f"Port: {parsed_db_url.port}")
-    print(f"Username: {parsed_db_url.username}")
-    print(f"Password: {parsed_db_url.password}")
-    print(f"Database: {parsed_db_url.path[1:]}")  # Remove leading slash
-
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': parsed_db_url.path[1:],  # Remove leading slash
-            'USER': parsed_db_url.username,
-            'PASSWORD': parsed_db_url.password,
-            'HOST': parsed_db_url.hostname,
-            'PORT': parsed_db_url.port,
-        }
+        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=1800)
     }
 else:
+    # Fallback to SQLite for local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

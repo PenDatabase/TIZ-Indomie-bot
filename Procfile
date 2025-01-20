@@ -1,2 +1,2 @@
 web: gunicorn --workers=1 --log-level debug indomie_bot.wsgi:application
-worker: python bot.py
+bot: python bot.py

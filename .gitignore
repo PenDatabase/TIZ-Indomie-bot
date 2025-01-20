@@ -15,8 +15,6 @@ db.sqlite3
 
 extras/
 
-# Django migrations
-*/migrations/*
 
 # Media files (if you're using Django's default storage for user-uploaded media)
 media/

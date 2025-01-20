@@ -93,6 +93,13 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL:
     parsed_db_url = urlparse(DATABASE_URL)
+    print(f"Database URL: {DATABASE_URL}")
+    print(f"Host: {parsed_db_url.hostname}")
+    print(f"Port: {parsed_db_url.port}")
+    print(f"Username: {parsed_db_url.username}")
+    print(f"Password: {parsed_db_url.password}")
+    print(f"Database: {parsed_db_url.path[1:]}")  # Remove leading slash
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -110,6 +117,7 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+
 
 
 # Password validation

@@ -40,6 +40,8 @@ DEBUG = False
 
 ALLOWED_HOSTS = ["127.0.0.1", "tiz-indomie-bot.up.railway.app"]
 
+# to enable csrf token to work when pushing to railway
+CSRF_TRUSTED_ORIGINS = ['https://tiz-indomie-bot.up.railway.app/']
 
 # Application definition
 
@@ -150,8 +152,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-SECURE_SSL_REDIRECT = False
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = ['https://tiz-indomie-bot.up.railway.app/']

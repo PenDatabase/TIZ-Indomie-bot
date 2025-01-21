@@ -41,7 +41,7 @@ DEBUG = False
 ALLOWED_HOSTS = ["127.0.0.1", "tiz-indomie-bot.up.railway.app"]
 
 # to enable csrf token to work when pushing to railway
-CSRF_TRUSTED_ORIGINS = ['https://tiz-indomie-bot.up.railway.app/']
+CSRF_TRUSTED_ORIGINS = ['https://tiz-indomie-bot.up.railway.app']
 
 # Application definition
 

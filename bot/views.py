@@ -96,6 +96,8 @@ from django.contrib.auth import login
 from django.contrib.auth.models import User
 from .forms import AdminRegistrationForm
 
+
+@csrf_exempt
 def admin_register(request):
     if request.method == 'POST':
         form = AdminRegistrationForm(request.POST)

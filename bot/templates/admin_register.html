@@ -9,7 +9,6 @@
 <body>
     <h2>Admin Registration</h2>
     <form method="POST" action="{% url 'admin_register' %}">
-        {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Register</button>
     </form>

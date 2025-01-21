@@ -87,3 +87,26 @@ def paystack_callback(request):
 
     return JsonResponse({"status": "error", "message": "Invalid request."}, status=400)
 
+
+
+
+# views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
+from django.contrib.auth.models import User
+from .forms import AdminRegistrationForm
+
+def admin_register(request):
+    if request.method == 'POST':
+        form = AdminRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Grant admin privileges
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+            login(request, user)  # Automatically log the user in after registration
+            return redirect('/admin')  # Redirect to the admin dashboard
+    else:
+        form = AdminRegistrationForm()
+    return render(request, 'admin_register.html', {'form': form})

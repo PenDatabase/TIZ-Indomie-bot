@@ -40,6 +40,6 @@ class OrderItem(models.Model):
     
 
 class Reciept(models.Model):
-    txref = models.CharField(max_length=255)
+    trxref = models.CharField(max_length=255)
     order_id = models.CharField(max_length=255)
     reference = models.CharField(max_length=255)

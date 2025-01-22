@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from django.db import transaction
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Reciept
 
 # telebot imports
 import telebot
@@ -61,8 +61,14 @@ def paystack_callback(request):
             try:
                 order = Order.objects.get(id=order_id)
                 with transaction.atomic():
-                    order.payed = True
+                    order.payed = True  # modify payment status
                     order.save()
+
+                    Reciept.objects.get_or_create(
+                        order_id = order_id,
+                        trxref = trxref,
+                        reference = payment_reference
+                    )
 
                 return render(
                     request,

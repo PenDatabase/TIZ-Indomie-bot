@@ -12,7 +12,7 @@ class Product(models.Model):
     
 
 class Order(models.Model):
-    user_id = models.IntegerField()
+    user_id = models.BigIntegerField()
     username = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, null=True, blank=True)
     full_name = models.CharField(max_length=255, null=True, blank=True)
@@ -37,3 +37,9 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"Product: {self.product.title}, Quantity: {self.quantity}, Order ID: {self.order.id}"
+    
+
+class Reciept(models.Model):
+    txref = models.CharField(max_length=255)
+    order_id = models.CharField(max_length=255)
+    reference = models.CharField(max_length=255)

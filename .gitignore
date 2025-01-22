@@ -38,6 +38,5 @@ Thumbs.db
 
 
 
-# Testing files ignore
-set_webhook.py
-cbot.py
+# backup directory incase of errors in updates:
+backups/

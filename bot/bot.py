@@ -3,11 +3,11 @@ import requests
 from urllib.parse import urlencode
 
 import telebot
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton, ForceReply
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 from django.conf import settings
-from django.urls import reverse
+# from django.urls import reverse
 from bot.models import Product, Order, OrderItem, Reciept
 
 
@@ -108,19 +108,13 @@ def payed_orders(message):
 
         for order in orders:
             items = OrderItem.objects.filter(order=order).select_related("product")
-            url = (
-                reverse("paystack_callback") + 
-                "?" +
-                urlencode({
-                    "order_id": Reciept.order_id,
-                    "txref": Reciept.txref,
-                    "reference": Reciept.reference
-                })
-            )
+            #reciept = Reciept.objects.get(order_id=order.id)
+            #delivery_url = reverse("paystack_callback") + f"?order_id={reciept.order_id}&trxref={reciept.trxref}&reference={reciept.reference}"
             order_details = ""
             for item in items:
                 order_details += f"{item.product.title} x {item.quantity} - (₦{item.product.price * item.quantity}) \n*Delivered: {order.delivery_status}*"
-            msg += f"Order #{order.id}: \n{order_details}\n\n"
+
+            msg += f"*Order #{order.id}*:\n{order_details}\n\n"
 
         bot.send_message(message.chat.id, msg, parse_mode="Markdown")
     else:

@@ -1,12 +1,15 @@
 import re
 import requests
-import telebot
+from urllib.parse import urlencode
 
+import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton, ForceReply
 
-# Now import models after setup
+
 from django.conf import settings
-from bot.models import Product, Order, OrderItem
+from django.urls import reverse
+from bot.models import Product, Order, OrderItem, Reciept
+
 
 # Initialize the bot with the token
 bot = telebot.TeleBot(settings.TOKEN)
@@ -105,6 +108,15 @@ def payed_orders(message):
 
         for order in orders:
             items = OrderItem.objects.filter(order=order).select_related("product")
+            url = (
+                reverse("paystack_callback") + 
+                "?" +
+                urlencode({
+                    "order_id": Reciept.order_id,
+                    "txref": Reciept.txref,
+                    "reference": Reciept.reference
+                })
+            )
             order_details = ""
             for item in items:
                 order_details += f"{item.product.title} x {item.quantity} - (₦{item.product.price * item.quantity}) \n*Delivered: {order.delivery_status}*"

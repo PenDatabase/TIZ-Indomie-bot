@@ -48,7 +48,13 @@ def help_command(message):
     """
     Provides help information about the bot.
     """
-    bot.send_message(message.chat.id, "You can choose 'Products' to view available items and place an order.")
+    msg = "*Help Section*\
+    *------------------*\
+    \
+    Hi, I'm CU Indomie Guy\
+    _I'm a bot, You guessed it..._\
+    I can help you place orders for a carton of Indomie"
+    bot.send_message(message.chat.id, msg)
 
 
 
@@ -291,6 +297,8 @@ def process_single_checkout(call):
 def handle_other_callbacks(call):
     if call.data == "products":
         products(call.message)
+    if call.data == "help":
+        help_command(call.message)
 
     bot.answer_callback_query(call.id)
 # ======================= HELPER FUNCTIONS =======================
@@ -309,7 +317,7 @@ def create_paystack_payment(amount, order_id):
         'amount': amount * 100,  # Convert to kobo (Paystack expects the amount in kobo)
         'email': 'user_email@example.com',  # Replace with the user's email
         'order_id': order_id,  # Your custom order ID (you may pass this from your order model)
-        'callback_url': f'{website_link}paystack/callback/?order_id={order_id}',  # Include order_id in callback URL
+        'callback_url': f'{website_link}/paystack/callback/?order_id={order_id}',  # Include order_id in callback URL
     }
 
     response = requests.post('https://api.paystack.co/transaction/initialize', headers=headers, data=data)

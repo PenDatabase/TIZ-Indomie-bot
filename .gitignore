@@ -34,3 +34,10 @@ static/
 
 # Windows
 Thumbs.db
+
+
+
+
+# Testing files ignore
+set_webhook.py
+cbot.py

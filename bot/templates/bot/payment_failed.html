@@ -6,13 +6,14 @@
   <title>Payment Failed</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
 
-  <div class="bg-white shadow-lg rounded-lg p-8 max-w-xl w-full">
+  <div class="bg-white shadow-xl rounded-lg p-8 max-w-xl w-full">
     <div class="text-center">
+      <!-- Error Icon -->
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        class="h-16 w-16 text-red-500 mx-auto mb-4"
+        class="h-20 w-20 text-red-500 mx-auto mb-6 animate__animated animate__shakeX"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -24,36 +25,40 @@
           d="M12 8v4m0 4h.01m-6.938 4h13.856c.833 0 1.337-.896.88-1.582L13.21 9.386c-.457-.686-1.63-.686-2.088 0L4.258 18.418c-.457.686.048 1.582.88 1.582z"
         />
       </svg>
-      <h1 class="text-2xl font-semibold text-gray-800 mb-2">Payment Failed</h1>
-      <p class="text-gray-600 mb-6">
-        Unfortunately, your payment could not be processed. Please try again or contact support for assistance.
+      <h1 class="text-3xl font-bold text-gray-800 mb-4 animate__animated animate__fadeIn">
+        Payment Failed
+      </h1>
+      <p class="text-lg text-gray-600 mb-8 animate__animated animate__fadeIn animate__delay-1s">
+        Oops! We couldn't process your payment. Please try again or contact support for help.
       </p>
     </div>
 
-    <div class="space-y-4">
+    <!-- Payment Details -->
+    <div class="space-y-6 mb-8 animate__animated animate__fadeIn animate__delay-2s">
       <div>
-        <h2 class="text-lg font-medium text-gray-700">Reason:</h2>
+        <h2 class="text-lg font-semibold text-gray-700">Reason:</h2>
         <p class="text-gray-600">{{ error_message }}</p>
       </div>
 
       <div>
-        <h2 class="text-lg font-medium text-gray-700">Reference ID:</h2>
+        <h2 class="text-lg font-semibold text-gray-700">Reference ID:</h2>
         <p class="text-gray-600">{{ reference }}</p>
       </div>
     </div>
 
-    <div class="mt-6 text-center flex justify-center space-x-4">
+    <!-- Action Buttons -->
+    <div class="text-center flex justify-center space-x-4">
       <a
         href="{% url 'telegram_url' %}"
-        class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg"
+        class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-lg transition duration-300 transform hover:scale-105"
       >
-        Go back to bot
+        Go back to Bot
       </a>
-      <!-- <a
+      <a
         href="/contact-support"
-        class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg"
+        class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg transition duration-300 transform hover:scale-105"
       >
-        Contact Support -->
+        Contact Support
       </a>
     </div>
   </div>

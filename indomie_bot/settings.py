@@ -38,10 +38,10 @@ WEBSITE_LINK = os.getenv("WEBSITE_LINK")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["127.0.0.1", "tiz-indomie-bot.up.railway.app"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "tiz-indomie-bot.up.railway.app"]
 
 # to enable csrf token to work when pushing to railway
-CSRF_TRUSTED_ORIGINS = ['https://tiz-indomie-bot.up.railway.app']
+CSRF_TRUSTED_ORIGINS = [f'{WEBSITE_LINK}']
 
 # Application definition
 

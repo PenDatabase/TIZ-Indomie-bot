@@ -30,7 +30,7 @@ def listing(message):
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("Products", callback_data="products"))
     markup.add(InlineKeyboardButton("Help", callback_data="help"))
-    msg = "Hi, *I'm CU Indomie Guy*\nI can help you place orders for a carton of _Indomie_ from our quality vendor\nRest assured, Your orders will be delivered to your halls maximum of 7days after they are placed\nChoose from the options below to explore what I can do"
+    msg = "Hi, *I'm CU Indomie Guy*\nI can help you place orders for a carton of *_Indomie_*(or more...) from our quality vendor\nRest assured, your orders will be delivered to your halls maximum of 7days after they are placed\nChoose from the options below to explore what I can do:"
     bot.send_message(message.chat.id, msg, parse_mode="Markdown", reply_markup=markup)
 
 

@@ -60,7 +60,7 @@ class OrderItem(models.Model):
 
 class Reciept(models.Model):
     trxref = models.CharField(max_length=255)
-    order_id = models.BigIntegerField()
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, )
     reference = models.CharField(max_length=255)
 
 

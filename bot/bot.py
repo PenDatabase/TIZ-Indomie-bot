@@ -72,7 +72,7 @@ def view_cart(message):
     orders = Order.objects.filter(user_id=user_id, payed=False)
 
     if orders.exists():
-        msg = "*Hi, Here's your Cart items 🛒:*\n.......☆*: .｡. o(≧▽≦)o .｡.:*☆.......\n\n"
+        msg = "*Hi, Here's your Cart items 🛒:*\n..................☆*: .｡. o(≧▽≦)o .｡.:*☆.....................\n\n"
         markup = InlineKeyboardMarkup()
 
         # List all unpayed orders
@@ -109,8 +109,8 @@ def payed_orders(message):
 
         for order in orders:
             items = OrderItem.objects.filter(order=order).select_related("product")
-            reciept = Reciept.objects.get(order_id=order.id)
-            delivery_url = website_link + reverse("paystack_callback") + f"?order_id={reciept.order_id}&trxref={reciept.trxref}&reference={reciept.reference}"
+            reciept = Reciept.objects.get(order=order)
+            delivery_url = website_link + reverse("paystack_callback") + f"?order_id={reciept.order.id}&trxref={reciept.trxref}&reference={reciept.reference}"
             order_details = ""
             for item in items:
                 order_details += f"{item.product.title} x {item.quantity} - (₦{item.product.price * item.quantity}) \n*Delivery date: {order.delivery_date}*\n*Delivered: {order.delivered}*"
@@ -363,17 +363,17 @@ def get_email(message):
     user_id = message.from_user.id
 
     if re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
-        pass
+        if user_id in user_orders:
+            user_orders[user_id]["email"] = email
+            msg = bot.send_message(message.chat.id, "What is the *fullname* of person your order is to be delivered to?", parse_mode="Markdown")
+            bot.register_next_step_handler(msg, get_fullname)
+        else:
+            bot.reply_to(message, "No active order found")
     else:
         bot.send_message(message.chat.id, "Please enter a valid email")
         bot.register_next_step_handler(message, get_email)
 
-    if user_id in user_orders:
-        user_orders[user_id]["email"] = email
-        msg = bot.send_message(message.chat.id, "What is the *fullname* of person your order is to be delivered to?", parse_mode="Markdown")
-        bot.register_next_step_handler(msg, get_fullname)
-    else:
-        bot.reply_to(message, "No active order found")
+    
 
 
 

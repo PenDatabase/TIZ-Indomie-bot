@@ -1,6 +1,6 @@
 import requests
 
-
+from django.utils.dateformat import format as dateformat
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
@@ -27,6 +27,7 @@ def get_order_details(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     items = OrderItem.objects.filter(order=order).select_related("product")
     data = {
+        "delivery_date": f"{order.delivery_date}",
         "id": order.id,
         "full_name": order.full_name,
         "hall": order.hall,
@@ -64,11 +65,11 @@ def paystack_callback(request):
                     order.payed = True  # modify payment status
                     order.save()
 
-                    reciept = Reciept()
-                    reciept.trxref = trxref
-                    reciept.order_id = order.id
-                    reciept.reference = payment_reference
-                    reciept.save()
+                    reciept = Reciept.objects.get_or_create(
+                        trxref = trxref,
+                        order = order,
+                        reference = payment_reference
+                    )
 
                 return render(
                     request,

@@ -7,7 +7,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 from django.conf import settings
-# from django.urls import reverse
+from django.urls import reverse
 from bot.models import Product, Order, OrderItem, Reciept
 
 
@@ -30,7 +30,7 @@ def listing(message):
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("Products", callback_data="products"))
     markup.add(InlineKeyboardButton("Help", callback_data="help"))
-    msg = "Hi, *I'm CU Indomie Guy*\nI can help you place orders for a carton of *Indomie*(or more...) from our quality vendor\nRest assured, your orders will be delivered to your halls maximum of 7days after they are placed\nChoose from the options below to explore what I can do:"
+    msg = "Hi, I'm *CU Indomie Guy*\n\nI can help you place orders for a carton of *Indomie*(or more...) from our quality vendor\nRest assured, your orders will be delivered to your halls maximum of 7days after they are placed\nChoose from the options below to explore what I can do:"
     bot.send_message(message.chat.id, msg, parse_mode="Markdown", reply_markup=markup)
 
 
@@ -109,13 +109,14 @@ def payed_orders(message):
 
         for order in orders:
             items = OrderItem.objects.filter(order=order).select_related("product")
-            #reciept = Reciept.objects.get(order_id=order.id)
-            #delivery_url = reverse("paystack_callback") + f"?order_id={reciept.order_id}&trxref={reciept.trxref}&reference={reciept.reference}"
+            # reciept = Reciept.objects.get(order_id=order.id)
+            # delivery_url = reverse("paystack_callback") + f"?order_id={reciept.order_id}&trxref={reciept.trxref}&reference={reciept.reference}"
             order_details = ""
             for item in items:
                 order_details += f"{item.product.title} x {item.quantity} - (₦{item.product.price * item.quantity}) \n*Delivered: {order.delivery_status}*"
 
             msg += f"*Order #{order.id}*:\n{order_details}\n\n"
+            """\n[Click here to see receipt]({delivery_url.replace('.', '\\.').replace('-', '\\-').replace('_', '\\_')}) """
 
         bot.send_message(message.chat.id, msg, parse_mode="Markdown")
     else:

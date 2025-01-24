@@ -36,7 +36,7 @@ class Order(models.Model):
     hall = models.CharField(max_length=255)
     room_no = models.CharField(max_length=255)
     payed = models.BooleanField(default=False)
-    delivery_status = models.BooleanField(default=False)
+    delivered = models.BooleanField(default=False)
     delivery_date = models.ForeignKey(DeliveryDate, on_delete=models.PROTECT, null=True, default=True)
 
     def __str__(self):

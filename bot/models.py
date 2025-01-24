@@ -18,7 +18,7 @@ class DeliveryDate(models.Model):
     date = models.DateField()
 
     def __str__(self):
-        return f"{self.date}"
+        return f"{self.date.strftime('%A, %B %d %Y')}"
     
     def clean(self):
         super().clean()

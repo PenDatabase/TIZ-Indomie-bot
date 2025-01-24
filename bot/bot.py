@@ -81,7 +81,7 @@ def view_cart(message):
             order_details = ""
             for item in items:
                 order_details += f"- {item.product.title} x{item.quantity} (₦{item.product.price * item.quantity})\n"
-            msg += f"Order #{order.id}:\n{order_details}\n\n"
+            msg += f"Order id: #{order.id}:\n{order_details}\n\n"
 
         # Add buttons for checkout and remove
         checkout_single = InlineKeyboardButton("Checkout an Order", callback_data="checkout_single_order")
@@ -115,7 +115,7 @@ def payed_orders(message):
             for item in items:
                 order_details += f"{item.product.title} x {item.quantity} - (₦{item.product.price * item.quantity}) \n*Delivery date: {order.delivery_date}*\n*Delivered: {order.delivered}*"
 
-            msg += f"*Order #{order.id}*:\n{order_details}\n\n"
+            msg += f"*Order id: #{order.id}*:\n{order_details}\n\n"
             """\n[Click here to see receipt]({delivery_url.replace('.', '\\.').replace('-', '\\-').replace('_', '\\_')}) """
 
         bot.send_message(message.chat.id, msg, parse_mode="Markdown")
@@ -136,7 +136,7 @@ def checkout_single_order_command(message):
     if orders.exists():
         markup = InlineKeyboardMarkup()
         for order in orders:
-            markup.add(InlineKeyboardButton(f"Order #{order.id}", callback_data=f"checkout_order_{order.id}"))
+            markup.add(InlineKeyboardButton(f"Order id: #{order.id}", callback_data=f"checkout_order_{order.id}"))
         bot.send_message(message.chat.id, "Select an order to checkout:", reply_markup=markup)
 
     bot.send_message(message.chat.id, "You have no incomplete orders to checkout.")
@@ -214,7 +214,7 @@ def handle_remove_order_cart(call):
         for order in orders:
             total_items = OrderItem.objects.filter(order=order).count()
             callback_data = f"remove_order_{order.id}"  # Use order ID for removal
-            markup.add(InlineKeyboardButton(f"Order #{order.id} \nItem quantity: ({total_items})", callback_data=callback_data))
+            markup.add(InlineKeyboardButton(f"Order id: #{order.id} \nItem quantity: ({total_items})", callback_data=callback_data))
         
         bot.send_message(call.message.chat.id, "Select an order to remove:", reply_markup=markup)
     else:
@@ -256,7 +256,7 @@ def checkout_single_order(call):
     if orders.exists():
         markup = InlineKeyboardMarkup()
         for order in orders:
-            markup.add(InlineKeyboardButton(f"Order #{order.id}", callback_data=f"checkout_order_{order.id}"))
+            markup.add(InlineKeyboardButton(f"Order id: #{order.id}", callback_data=f"checkout_order_{order.id}"))
         bot.send_message(call.message.chat.id, "Select an order to checkout:", reply_markup=markup)
     else:
         bot.send_message(call.message.chat.id, "You have no incomplete orders to checkout.")
@@ -289,7 +289,7 @@ def process_single_checkout(call):
         # Send message with payment link
         bot.send_message(
             call.message.chat.id,
-            f"You're checking out Order #{order_id}:\n{item_details}\nTotal: ₦{total_amount}\n\n"
+            f"You're checking out Order id: #{order_id}:\n{item_details}\nTotal: ₦{total_amount}\n\n"
             "Click the link below to complete your payment:\n" + payment_url
         )
         order.save()

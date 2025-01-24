@@ -23,7 +23,7 @@ user_orders = {}
 
 # /start command handler
 @bot.message_handler(commands=["start"])
-def listing(message):
+def start(message):
     """
     Handles the /list command. Displays a menu with options for the user.
     """

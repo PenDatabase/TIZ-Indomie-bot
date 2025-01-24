@@ -60,7 +60,7 @@ class OrderItem(models.Model):
 
 class Reciept(models.Model):
     trxref = models.CharField(max_length=255)
-    order_id = models.IntegerField()
+    order_id = models.BigIntegerField()
     reference = models.CharField(max_length=255)
 
 

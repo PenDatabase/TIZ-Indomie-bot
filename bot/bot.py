@@ -113,7 +113,7 @@ def payed_orders(message):
             # delivery_url = reverse("paystack_callback") + f"?order_id={reciept.order_id}&trxref={reciept.trxref}&reference={reciept.reference}"
             order_details = ""
             for item in items:
-                order_details += f"{item.product.title} x {item.quantity} - (₦{item.product.price * item.quantity}) \n*Delivered: {order.delivered}*"
+                order_details += f"{item.product.title} x {item.quantity} - (₦{item.product.price * item.quantity}) \n*Delivery date: {order.delivery_date}*\n*Delivered: {order.delivered}*"
 
             msg += f"*Order #{order.id}*:\n{order_details}\n\n"
             """\n[Click here to see receipt]({delivery_url.replace('.', '\\.').replace('-', '\\-').replace('_', '\\_')}) """

@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name='Order',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('user_id', models.IntegerField()),
+                ('user_id', models.BigIntegerField()),
                 ('username', models.CharField(max_length=255)),
                 ('hall', models.CharField(max_length=255)),
                 ('romm_no', models.CharField(max_length=255)),

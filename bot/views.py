@@ -64,11 +64,11 @@ def paystack_callback(request):
                     order.payed = True  # modify payment status
                     order.save()
 
-                    # reciept = Reciept()
-                    # reciept.trxref = trxref
-                    # reciept.order_id = order.id
-                    # reciept.reference = payment_reference
-                    # reciept.save()
+                    reciept = Reciept()
+                    reciept.trxref = trxref
+                    reciept.order_id = order.id
+                    reciept.reference = payment_reference
+                    reciept.save()
 
                 return render(
                     request,

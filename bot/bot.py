@@ -109,15 +109,15 @@ def payed_orders(message):
 
         for order in orders:
             items = OrderItem.objects.filter(order=order).select_related("product")
-            # reciept = Reciept.objects.get(order_id=order.id)
-            # delivery_url = reverse("paystack_callback") + f"?order_id={reciept.order_id}&trxref={reciept.trxref}&reference={reciept.reference}"
+            reciept = Reciept.objects.get(order_id=order.id)
+            delivery_url = website_link + reverse("paystack_callback") + f"?order_id={reciept.order_id}&trxref={reciept.trxref}&reference={reciept.reference}"
             order_details = ""
             for item in items:
                 order_details += f"{item.product.title} x {item.quantity} - (₦{item.product.price * item.quantity}) \n*Delivery date: {order.delivery_date}*\n*Delivered: {order.delivered}*"
 
-            msg += f"*Order id: #{order.id}*:\n{order_details}\n\n"
-            """\n[Click here to see receipt]({delivery_url.replace('.', '\\.').replace('-', '\\-').replace('_', '\\_')}) """
-
+            msg += f"*Order id: #{order.id}*: \n[Click here to see receipt]({delivery_url}) \n{order_details}\n\n"
+            """"""
+        print(msg)
         bot.send_message(message.chat.id, msg, parse_mode="Markdown")
     else:
         bot.send_message(message.chat.id, "You haven't checked out any orders \nUse /cart to view unpayed orders \nUse /checkout to checkout an order \nUse /products to view available products")

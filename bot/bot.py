@@ -8,7 +8,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from django.conf import settings
 from django.urls import reverse
-from bot.models import Product, Order, OrderItem, Reciept
+from bot.models import Product, Order, OrderItem, Reciept, DeliveryDate
 
 
 # Initialize the bot with the token
@@ -435,6 +435,7 @@ def get_room_no(message):
                 email = order_data["email"],
                 room_no=order_data["room_no"],
                 payed=False,
+                delivery_date = DeliveryDate.objects.order_by("-id").first()
             )
             if created:
                 OrderItem.objects.create(order=order, product=product, quantity=order_data["quantity"])

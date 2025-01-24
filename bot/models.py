@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 
@@ -18,6 +19,12 @@ class DeliveryDate(models.Model):
 
     def __str__(self):
         return f"{self.date}"
+    
+    def clean(self):
+        super().clean()
+
+        if DeliveryDate.objects.exists():
+            raise ValidationError("You cannot create more than one Delivery date at a time, Please Modify the existing date")
     
 
 

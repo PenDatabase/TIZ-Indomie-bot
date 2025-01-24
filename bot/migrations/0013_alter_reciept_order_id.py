@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='reciept',
             name='order_id',
-            field=models.IntegerField(),
+            field=models.BigIntegerField(),
         ),
     ]

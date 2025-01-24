@@ -72,7 +72,7 @@ def view_cart(message):
     orders = Order.objects.filter(user_id=user_id, payed=False)
 
     if orders.exists():
-        msg = "Your cart:\n\n"
+        msg = "*Hi, Here's your Cart items 🛒:*\n.......☆*: .｡. o(≧▽≦)o .｡.:*☆.......\n\n"
         markup = InlineKeyboardMarkup()
 
         # List all unpayed orders

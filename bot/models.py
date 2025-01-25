@@ -40,7 +40,7 @@ class Order(models.Model):
     delivery_date = models.ForeignKey(DeliveryDate, on_delete=models.PROTECT, null=True, default=True)
 
     def __str__(self):
-        return f"{self.id} - {self.username}"
+        return f"Order #{self.id}"
 
     def save(self, *args, **kwargs):
         if not self.full_name:

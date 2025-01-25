@@ -15,7 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.utils.html import format_html
 from django.urls import path, include
+
+admin.site.index_title = format_html("<span style='color: yellow;'>CU Indomie Guy | TIZ Administration 😁</span>")
+admin.site.site_header = format_html("<span style='color: white;'>Hi Admin 👋 </span>")
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -30,7 +30,16 @@ def start(message):
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("Products", callback_data="products"))
     markup.add(InlineKeyboardButton("Help", callback_data="help"))
-    msg = "Hi, I'm *CU Indomie Guy*\n\nI can help you place orders for a carton of *Indomie*(or more...) from our quality vendor\nRest assured, your orders will be delivered to your halls maximum of 7days after they are placed\nChoose from the options below to explore what I can do:"
+    msg = """
+🌟 Hey there! I’m the *CU Indomie Guy!* 🎉
+*----------------------------------------------------------------------*
+
+I’m here to make your _Indomie_ cravings super easy to satisfy! 🛒
+Whether it’s a carton (or more 👀), I’ll hook you up with premium-quality _Indomie_ straight from our trusted vendor.
+
+🚚 Delivery? No stress! Your order will land at your hall 🏠 within *7 days* max—guaranteed.
+
+👇 Tap one of the options below to see what magic we can cook up together! 🔥"""
     bot.send_message(message.chat.id, msg, parse_mode="Markdown", reply_markup=markup)
 
 
@@ -50,16 +59,92 @@ def products(message):
 @bot.message_handler(commands=["help"])
 def help_command(message):
     """
-    Provides help information about the bot.
+    Provides help information about the bot with a progressive view.
     """
-    msg = "*Help Section*\
-    *------------------*\
-    \
-    Hi, I'm CU Indomie Guy\
-    _I'm a bot, You guessed it..._\
-    I can help you place orders for a carton of Indomie"
-    bot.send_message(message.chat.id, msg)
+    # Short initial text with a "Continue Reading" button
+    msg = (
+        "*Help Section*\n"
+        "*----------------------------------------------------------------------*\n"
+        "👋 Hello, welcome to the help section! I’m here to guide you on how to use this bot to satisfy your Indomie cravings 🍜.\n"
+        "Click the button below to learn more about what I can do for you! 👇"
+    )
+    
+    # Create an inline keyboard with a "Continue Reading" button
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton("📖 Continue Reading", callback_data="help_intro"))
 
+    # Send the short initial text
+    bot.send_message(message.chat.id, msg, parse_mode="Markdown", reply_markup=keyboard)
+
+
+# Callback query handler for progressive reading
+@bot.callback_query_handler(func=lambda call: call.data.startswith("help_"))
+def help_callback(call):
+    """
+    Handles progressive text display for the help command.
+    """
+    if call.data == "help_intro":
+        # Detailed introduction text
+        intro_msg = (
+            "*#Intro*\n"
+            "So you're wondering what I'm about, right? 🤔\n"
+            "Simple! I'm a bot for ordering Indomie from the convenience of your room.\n"
+            "All you have to do is place your order, and I'll forward it to my team to deliver straight to your hall within 7 days.\n"
+            "Oh, and my name is Indomie Guy, just in case you missed it. 😊\n"
+            "Ready to see the commands? Tap below! 👇"
+        )
+        keyboard = InlineKeyboardMarkup()
+        keyboard.add(InlineKeyboardButton("📜 View Commands", callback_data="help_commands"))
+        bot.edit_message_text(
+            intro_msg, 
+            chat_id=call.message.chat.id, 
+            message_id=call.message.message_id, 
+            parse_mode="Markdown", 
+            reply_markup=keyboard
+        )
+    
+    elif call.data == "help_commands":
+        # Commands list
+        commands_msg = (
+            "*#Commands*\n"
+            "/start - 🍜 Hello! I'm CU Indomie Guy 😎 — Your one-stop shop for tasty Indomie!\n"
+            "/help - 🤔 Confused? No worries, click here to find out how I can help you!\n"
+            "/products - 🍴 Explore all the delicious Indomie options available.\n"
+            "/cart - 🛒 View your cart and ensure you're ready to munch.\n"
+            "/checkout - 💳 Settle up and get your orders delivered.\n"
+            "/payed - 💰 Check all your paid and confirmed orders.\n"
+            "Want to know how to place an order? Tap below! 👇"
+        )
+        keyboard = InlineKeyboardMarkup()
+        keyboard.add(InlineKeyboardButton("📦 How to Place an Order", callback_data="help_how_to_order"))
+        bot.edit_message_text(
+            commands_msg, 
+            chat_id=call.message.chat.id, 
+            message_id=call.message.message_id, 
+            parse_mode="Markdown", 
+            reply_markup=keyboard
+        )
+    
+    elif call.data == "help_how_to_order":
+        # Step-by-step order instructions
+        order_msg = (
+            "*#How to Place an Order*\n"
+            "Here's how you can place an order in 7 easy steps:\n"
+            "1️⃣ Click on /products and select a product.\n"
+            "2️⃣ Click on 'Add to Cart'.\n"
+            "3️⃣ Enter the quantity you need (e.g., 1, 5).\n"
+            "4️⃣ Enter your email (e.g., youremail@example.com).\n"
+            "5️⃣ Enter the full name of the recipient.\n"
+            "6️⃣ Choose the recipient's hall (e.g., Paul Hall).\n"
+            "7️⃣ Enter the room number (e.g., A204).\n\n"
+            "Use /cart to view your cart and proceed to checkout. Easy, right? 😉"
+        )
+        bot.edit_message_text(
+            order_msg, 
+            chat_id=call.message.chat.id, 
+            message_id=call.message.message_id, 
+            parse_mode="Markdown"
+        )
 
 
 # /cart command handler
@@ -96,7 +181,7 @@ def view_cart(message):
 
 
 # /payed_orders command handler
-@bot.message_handler(commands=["payed_orders"])
+@bot.message_handler(commands=["payed"])
 def payed_orders(message):
     """
     Displays the users payed orders and their delivery status

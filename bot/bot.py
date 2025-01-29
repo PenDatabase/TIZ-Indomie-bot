@@ -77,75 +77,6 @@ def help_command(message):
     bot.send_message(message.chat.id, msg, parse_mode="Markdown", reply_markup=keyboard)
 
 
-# Callback query handler for progressive reading
-@bot.callback_query_handler(func=lambda call: call.data.startswith("help_"))
-def help_callback(call):
-    """
-    Handles progressive text display for the help command.
-    """
-    if call.data == "help_intro":
-        # Detailed introduction text
-        intro_msg = (
-            "**#Intro**\n\n"
-            "So you're wondering what I'm about, right? 🤔\n\n"
-            "Simple! I'm a bot for ordering *Indomie* 🍜 from the convenience of your room. 🏠\n\n"
-            "All you have to do is place your order, and I'll forward it to my team to deliver straight to your hall within **7 days**. 🚀\n\n"
-            "Oh, and my name is **CU Indomie Guy**, just in case you missed it. 😊\n\n"
-            "Ready to see the commands? Tap below! 👇"
-        )
-        keyboard = InlineKeyboardMarkup()
-        keyboard.add(InlineKeyboardButton("📜 View Commands", callback_data="help_commands"))
-        bot.edit_message_text(
-            intro_msg, 
-            chat_id=call.message.chat.id, 
-            message_id=call.message.message_id, 
-            parse_mode="Markdown", 
-            reply_markup=keyboard
-        )
-    
-    elif call.data == "help_commands":
-        # Commands list
-        commands_msg = (
-            "*#Commands*\n\n"
-            "/start - 🍜 Hello! I'm CU Indomie Guy 😎 — Your one-stop shop for tasty Indomie!\n"
-            "/help - 🤔 Confused? No worries, click here to find out how I can help you!\n"
-            "/products - 🍴 Explore all the delicious Indomie options available.\n"
-            "/cart - 🛒 View your cart and ensure you're ready to munch.\n"
-            "/checkout - 💳 Settle up and get your orders delivered.\n"
-            "/payed - 💰 Check all your paid and confirmed orders.\n"
-            "Want to know how to place an order? Tap below! 👇"
-        )
-        keyboard = InlineKeyboardMarkup()
-        keyboard.add(InlineKeyboardButton("📦 How to Place an Order", callback_data="help_how_to_order"))
-        bot.edit_message_text(
-            commands_msg, 
-            chat_id=call.message.chat.id, 
-            message_id=call.message.message_id, 
-            parse_mode="Markdown", 
-            reply_markup=keyboard
-        )
-    
-    elif call.data == "help_how_to_order":
-        # Step-by-step order instructions
-        order_msg = (
-            "**#How to Place an Order**\n\n"
-            "Here's how you can place an order in **7 easy steps**: 🛒\n\n"
-            "1️⃣ Click on `/products` and select a product.\n"
-            "2️⃣ Click on 'Add to Cart'. 🛍️\n"
-            "3️⃣ Enter the number of cartons you need (e.g., 1, 5). 🔢\n"
-            "4️⃣ Enter your email (e.g., youremail@example.com). 📧\n"
-            "5️⃣ Enter the full name of the recipient. 👤\n"
-            "6️⃣ Choose the recipient's hall (e.g., Paul Hall). 🏢\n"
-            "7️⃣ Enter the room number (e.g., A204). 🚪\n\n"
-            "Use `/cart` to view your cart and proceed to checkout. Easy, right? 😉"
-        )
-        bot.edit_message_text(
-            order_msg, 
-            chat_id=call.message.chat.id, 
-            message_id=call.message.message_id, 
-            parse_mode="Markdown"
-        )
-
 
 # /cart command handler
 @bot.message_handler(commands=["cart"])
@@ -241,6 +172,80 @@ def handle_order_callback(call):
     bot.register_next_step_handler(call.message, get_quantity)
     
     bot.answer_callback_query(call.id)
+
+
+
+# Callback query handler for progressive reading
+@bot.callback_query_handler(func=lambda call: call.data.startswith("help_"))
+def help_callback(call):
+    """
+    Handles progressive text display for the help command.
+    """
+    if call.data == "help_intro":
+        # Detailed introduction text
+        intro_msg = (
+            "**#Intro**\n\n"
+            "So you're wondering what I'm about, right? 🤔\n\n"
+            "Simple! I'm a bot for ordering *Indomie* 🍜 from the convenience of your room. 🏠\n\n"
+            "All you have to do is place your order, and I'll forward it to my team to deliver straight to your hall within **7 days**. 🚀\n\n"
+            "Oh, and my name is **CU Indomie Guy**, just in case you missed it. 😊\n\n"
+            "Ready to see the commands? Tap below! 👇"
+        )
+        keyboard = InlineKeyboardMarkup()
+        keyboard.add(InlineKeyboardButton("📜 View Commands", callback_data="help_commands"))
+        bot.edit_message_text(
+            intro_msg, 
+            chat_id=call.message.chat.id, 
+            message_id=call.message.message_id, 
+            parse_mode="Markdown", 
+            reply_markup=keyboard
+        )
+    
+    elif call.data == "help_commands":
+        # Commands list
+        commands_msg = (
+            "*#Commands*\n\n"
+            "/start - 🍜 Hello! I'm CU Indomie Guy 😎 — Your one-stop shop for tasty Indomie!\n"
+            "/help - 🤔 Confused? No worries, click here to find out how I can help you!\n"
+            "/products - 🍴 Explore all the delicious Indomie options available.\n"
+            "/cart - 🛒 View your cart and ensure you're ready to munch.\n"
+            "/checkout - 💳 Settle up and get your orders delivered.\n"
+            "/payed - 💰 Check all your paid and confirmed orders.\n"
+            "Want to know how to place an order? Tap below! 👇"
+        )
+        keyboard = InlineKeyboardMarkup()
+        keyboard.add(InlineKeyboardButton("📦 How to Place an Order", callback_data="help_how_to_order"))
+        bot.edit_message_text(
+            commands_msg, 
+            chat_id=call.message.chat.id, 
+            message_id=call.message.message_id, 
+            parse_mode="Markdown", 
+            reply_markup=keyboard
+        )
+    
+    elif call.data == "help_how_to_order":
+        # Step-by-step order instructions
+        order_msg = (
+            "**#How to Place an Order**\n\n"
+            "Here's how you can place an order in **7 easy steps**: 🛒\n\n"
+            "1️⃣ Click on `/products` and select a product.\n"
+            "2️⃣ Click on 'Add to Cart'. 🛍️\n"
+            "3️⃣ Enter the number of cartons you need (e.g., 1, 5). 🔢\n"
+            "4️⃣ Enter your email (e.g., youremail@example.com). 📧\n"
+            "5️⃣ Enter the full name of the recipient. 👤\n"
+            "6️⃣ Choose the recipient's hall (e.g., Paul Hall). 🏢\n"
+            "7️⃣ Enter the room number (e.g., A204). 🚪\n\n"
+            "Use `/cart` to view your cart and proceed to checkout. Easy, right? 😉"
+        )
+        bot.edit_message_text(
+            order_msg, 
+            chat_id=call.message.chat.id, 
+            message_id=call.message.message_id, 
+            parse_mode="Markdown"
+        )
+
+
+
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("hall_"))

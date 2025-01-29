@@ -52,7 +52,7 @@ def products(message):
     markup = InlineKeyboardMarkup()
     for product in Product.objects.all():
         markup.add(InlineKeyboardButton(f"{product.title}", callback_data=f"product_{product.id}"))
-    bot.send_message(message.chat.id, "Select a product:", reply_markup=markup)
+    bot.send_message(message.chat.id, "🔥 Time to stock up on Indomie! 🍜 Choose your favorite pack below and let's get cooking! 😋👇", reply_markup=markup)
 
 
 # /help command handler
@@ -86,11 +86,11 @@ def help_callback(call):
     if call.data == "help_intro":
         # Detailed introduction text
         intro_msg = (
-            "*#Intro*\n"
-            "So you're wondering what I'm about, right? 🤔\n"
-            "Simple! I'm a bot for ordering Indomie from the convenience of your room.\n"
-            "All you have to do is place your order, and I'll forward it to my team to deliver straight to your hall within 7 days.\n"
-            "Oh, and my name is Indomie Guy, just in case you missed it. 😊\n"
+            "**#Intro**\n\n"
+            "So you're wondering what I'm about, right? 🤔\n\n"
+            "Simple! I'm a bot for ordering *Indomie* 🍜 from the convenience of your room. 🏠\n\n"
+            "All you have to do is place your order, and I'll forward it to my team to deliver straight to your hall within **7 days**. 🚀\n\n"
+            "Oh, and my name is **CU Indomie Guy**, just in case you missed it. 😊\n\n"
             "Ready to see the commands? Tap below! 👇"
         )
         keyboard = InlineKeyboardMarkup()
@@ -106,7 +106,7 @@ def help_callback(call):
     elif call.data == "help_commands":
         # Commands list
         commands_msg = (
-            "*#Commands*\n"
+            "*#Commands*\n\n"
             "/start - 🍜 Hello! I'm CU Indomie Guy 😎 — Your one-stop shop for tasty Indomie!\n"
             "/help - 🤔 Confused? No worries, click here to find out how I can help you!\n"
             "/products - 🍴 Explore all the delicious Indomie options available.\n"
@@ -128,16 +128,16 @@ def help_callback(call):
     elif call.data == "help_how_to_order":
         # Step-by-step order instructions
         order_msg = (
-            "*#How to Place an Order*\n"
-            "Here's how you can place an order in 7 easy steps:\n"
-            "1️⃣ Click on /products and select a product.\n"
-            "2️⃣ Click on 'Add to Cart'.\n"
-            "3️⃣ Enter the quantity you need (e.g., 1, 5).\n"
-            "4️⃣ Enter your email (e.g., youremail@example.com).\n"
-            "5️⃣ Enter the full name of the recipient.\n"
-            "6️⃣ Choose the recipient's hall (e.g., Paul Hall).\n"
-            "7️⃣ Enter the room number (e.g., A204).\n\n"
-            "Use /cart to view your cart and proceed to checkout. Easy, right? 😉"
+            "**#How to Place an Order**\n\n"
+            "Here's how you can place an order in **7 easy steps**: 🛒\n\n"
+            "1️⃣ Click on `/products` and select a product.\n"
+            "2️⃣ Click on 'Add to Cart'. 🛍️\n"
+            "3️⃣ Enter the number of cartons you need (e.g., 1, 5). 🔢\n"
+            "4️⃣ Enter your email (e.g., youremail@example.com). 📧\n"
+            "5️⃣ Enter the full name of the recipient. 👤\n"
+            "6️⃣ Choose the recipient's hall (e.g., Paul Hall). 🏢\n"
+            "7️⃣ Enter the room number (e.g., A204). 🚪\n\n"
+            "Use `/cart` to view your cart and proceed to checkout. Easy, right? 😉"
         )
         bot.edit_message_text(
             order_msg, 
@@ -237,7 +237,7 @@ def handle_order_callback(call):
     """
     product_id = int(call.data.split("_")[1])
     user_orders[call.from_user.id] = {"product_id": product_id, "quantity": None, "hall": None, "room_no": None}
-    bot.send_message(call.message.chat.id, "Please enter the quantity of the product you want to order e.g 5:")
+    bot.send_message(call.message.chat.id, "Please enter the number of cartons you want to order e.g 5:")
     bot.register_next_step_handler(call.message, get_quantity)
     
     bot.answer_callback_query(call.id)
@@ -299,7 +299,7 @@ def handle_remove_order_cart(call):
         for order in orders:
             total_items = OrderItem.objects.filter(order=order).count()
             callback_data = f"remove_order_{order.id}"  # Use order ID for removal
-            markup.add(InlineKeyboardButton(f"Order id: #{order.id} \nItem quantity: ({total_items})", callback_data=callback_data))
+            markup.add(InlineKeyboardButton(f"Order id: #{order.id} \nCartons: ({total_items})", callback_data=callback_data))
         
         bot.send_message(call.message.chat.id, "Select an order to remove:", reply_markup=markup)
     else:
@@ -427,19 +427,19 @@ def create_paystack_payment(amount, order_id):
 
 def get_quantity(message):
     """
-    Handles the quantity input from the user.
+    Handles the quantity (number of cartons) input from the user.
     """
     try:
         quantity = int(message.text)
         user_id = message.from_user.id
-        if user_id in user_orders:
+        if user_id in user_orders and quantity:
             user_orders[user_id]["quantity"] = quantity
             msg = bot.send_message(message.chat.id, "What's your email?")
             bot.register_next_step_handler(msg, get_email)
         else:
             bot.reply_to(message, "No active order found.")
     except ValueError:
-        bot.reply_to(message, "Please enter a valid number for the quantity.")
+        bot.reply_to(message, "Please enter a valid number of cartons.")
         bot.register_next_step_handler(message, get_quantity)  # Retry quantity input
 
 

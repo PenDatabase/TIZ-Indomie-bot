@@ -228,7 +228,7 @@ def help_callback(call):
         order_msg = (
             "**#How to Place an Order**\n\n"
             "Here's how you can place an order in **7 easy steps**: 🛒\n\n"
-            "1️⃣ Click on `/products` and select a product.\n"
+            "1️⃣ Click on /products and select a product.\n"
             "2️⃣ Click on 'Add to Cart'. 🛍️\n"
             "3️⃣ Enter the number of cartons you need (e.g., 1, 5). 🔢\n"
             "4️⃣ Enter your email (e.g., youremail@example.com). 📧\n"

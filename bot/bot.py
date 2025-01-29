@@ -235,7 +235,7 @@ def help_callback(call):
             "5️⃣ Enter the full name of the recipient. 👤\n"
             "6️⃣ Choose the recipient's hall (e.g., Paul Hall). 🏢\n"
             "7️⃣ Enter the room number (e.g., A204). 🚪\n\n"
-            "Use `/cart` to view your cart and proceed to checkout. Easy, right? 😉"
+            "Use /cart to view your cart and proceed to checkout. Easy, right? 😉"
         )
         bot.edit_message_text(
             order_msg, 

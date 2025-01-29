@@ -1,5 +1,7 @@
 from django.db import models
+from django.utils import timezone
 from django.core.exceptions import ValidationError
+
 
 
 
@@ -23,8 +25,10 @@ class DeliveryDate(models.Model):
     def clean(self):
         super().clean()
 
-        if DeliveryDate.objects.exists():
-            raise ValidationError("You cannot create more than one Delivery date at a time, Please Modify the existing date")
+        # if DeliveryDate.objects.exists():
+        #     raise ValidationError("You cannot create more than one Delivery date at a time, Please Modify the existing date")
+        if self.date < timezone.now().date():
+            raise ValidationError({"date": "Deliver Date must be today's date or farther in time"})
     
 
 

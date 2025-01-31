@@ -18,8 +18,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import path, include
 
-admin.site.index_title = format_html("<span style='color: yellow;'>CU Indomie Guy | TIZ Administration 😁</span>")
-admin.site.site_header = format_html("<span style='color: white;'>Hi Admin 👋 </span>")
+admin.site.index_title = "CU Indomie Guy | TIZ Administration 😁"
+admin.site.site_header = "Hi TIZ 👋"
 
 urlpatterns = [
     path('admin/', admin.site.urls),

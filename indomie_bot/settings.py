@@ -46,6 +46,7 @@ CSRF_TRUSTED_ORIGINS = [f'{WEBSITE_LINK}']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -152,6 +153,19 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+JAZZMIN_SETTINGS = {
+    "site_header": "Library",
+    "welcome_sign": "🍜 *Welcome to CU Indomie Guy Admin!* 😎",
+    "site_logo_classes": "img-circle",
+
+    "topmenu_links": [
+        {"name": "Home", "url":"admin:index"},
+        {"name": "Go To Telegram Bot", "url":f"{TELEGRAM_URL}", "new_window": True}
+    ]
+}
 
 
 

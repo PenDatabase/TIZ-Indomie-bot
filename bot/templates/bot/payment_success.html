@@ -18,6 +18,15 @@
       </div>
       <h1 class="text-2xl font-bold text-gray-800 mb-2">Payment Successful!</h1>
       <p class="text-gray-600 text-base">Thank you for your order! Below are your receipt and order details.</p>
+      <br>
+      
+      <!-- Informational message with close button -->
+      <div class="bg-blue-100 text-blue-800 p-4 rounded-md mt-4 relative" id="info-message">
+        <button id="close-btn" class="absolute top-2 right-2 text-green-500 hover:text-blue-700 font-bold text-2xl">
+          &times;
+        </button>
+        <p class="text-md font-medium">Your order will be delivered to your location on the assigned delivery date.</p>
+      </div>
     </div>
 
     <div id="order-details" class="space-y-4">
@@ -44,7 +53,6 @@
         </ul>
       </div>
     </div>
-    
 
     <div class="mt-8 flex flex-col sm:flex-row sm:justify-between space-y-4 sm:space-y-0 sm:space-x-4">
       <a
@@ -65,68 +73,82 @@
   <script>
     // Fetch and display order details
     async function fetchOrderDetails() {
-  const params = new URLSearchParams(window.location.search);
-  const orderId = params.get("order_id");
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("order_id");
 
-  if (!orderId) {
-    document.getElementById("order-details").innerHTML =
-      "<p class='text-red-500'>Order ID not found in the URL.</p>";
-    return;
-  }
+      if (!orderId) {
+        document.getElementById("order-details").innerHTML =
+          "<p class='text-red-500'>Order ID not found in the URL.</p>";
+        return;
+      }
 
-  try {
-    const response = await fetch(`/api/orders/${orderId}/`);
-    if (!response.ok) throw new Error("Failed to fetch order details");
+      try {
+        const response = await fetch(`/api/orders/${orderId}/`);
+        if (!response.ok) throw new Error("Failed to fetch order details");
 
-    const data = await response.json();
-    document.getElementById("order-id").textContent = `#${data.id}`; // Add "#" to Order ID
-    document.getElementById("customer-name").textContent = data.full_name;
-    document.getElementById("delivery-address").textContent = `${data.hall}, Room ${data.room_no}`;
-    document.getElementById("delivery-date").textContent = data.delivery_date; // Display delivery date
+        const data = await response.json();
+        document.getElementById("order-id").textContent = `#${data.id}`; // Add "#" to Order ID
+        document.getElementById("customer-name").textContent = data.full_name;
+        document.getElementById("delivery-address").textContent = `${data.hall}, Room ${data.room_no}`;
+        document.getElementById("delivery-date").textContent = data.delivery_date; // Display delivery date
 
-    const productList = data.items.map(
-      (item) => `<li>${item.product.title} x ${item.quantity}</li>`
-    );
-    document.getElementById("product-list").innerHTML = productList.join("");
+        const productList = data.items.map(
+          (item) => `<li>${item.product.title} x ${item.quantity}</li>`
+        );
+        document.getElementById("product-list").innerHTML = productList.join("");
 
-    attachDownloadReceipt(data);
-  } catch (error) {
-    console.error("Error fetching order details:", error);
-    document.getElementById("order-details").innerHTML =
-      "<p class='text-red-500'>Failed to load order details. Please try again later.</p>";
-  }
-}
+        attachDownloadReceipt(data);
+      } catch (error) {
+        console.error("Error fetching order details:", error);
+        document.getElementById("order-details").innerHTML =
+          "<p class='text-red-500'>Failed to load order details. Please try again later.</p>";
+      }
+    }
 
+    // Close button functionality
+    const closeButton = document.getElementById("close-btn");
+    const infoMessage = document.getElementById("info-message");
+
+    closeButton.addEventListener("click", () => {
+      infoMessage.style.display = "none"; // Hide the informational message
+    });
 
     // Generate PDF receipt
     function attachDownloadReceipt(data) {
-    const downloadButton = document.getElementById("download-receipt");
-    downloadButton.addEventListener("click", () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
-      doc.text("Order Receipt", 10, 10);
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Order ID: ${data.id}`, 10, 20);
-      doc.text(`Customer Name: ${data.full_name}`, 10, 30);
-      doc.text(`Delivery Address: ${data.hall}, Room ${data.room_no}`, 10, 40);
-      doc.text(`Delivery Date: ${data.delivery_date}`, 10, 50);
+      const downloadButton = document.getElementById("download-receipt");
+      downloadButton.addEventListener("click", () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text("Order Receipt", 10, 10);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Order ID: ${data.id}`, 10, 20);
+        doc.text(`Customer Name: ${data.full_name}`, 10, 30);
+        doc.text(`Delivery Address: ${data.hall}, Room ${data.room_no}`, 10, 40);
+        doc.text(`Delivery Date: ${data.delivery_date}`, 10, 50);
 
-      doc.text("Products:", 10, 60);
-      data.items.forEach((item, index) => {
+        doc.text("Products:", 10, 60);
+        data.items.forEach((item, index) => {
+          doc.text(
+            `${index + 1}. ${item.product.title} x ${item.quantity}`,
+            15,
+            70 + index * 10
+          );
+        });
+
+        // Add the message to the PDF receipt
         doc.text(
-          `${index + 1}. ${item.product.title} x ${item.quantity}`,
-          15,
-          70 + index * 10
+          "Your order will be delivered to your location on the assigned delivery date.",
+          10,
+          90
         );
-      });
 
-      doc.text("Thank you for your purchase!", 10, 100);
-      doc.save(`Order_${data.id}_Receipt.pdf`);
-    });
-  }
+        doc.text("Thank you for your purchase!", 10, 100);
+        doc.save(`Order_${data.id}_Receipt.pdf`);
+      });
+    }
 
     fetchOrderDetails();
   </script>

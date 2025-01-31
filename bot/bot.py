@@ -18,6 +18,9 @@ website_link = settings.WEBSITE_LINK
 # Dictionary to track user orders
 user_orders = {}
 
+# Common error messages
+no_active_order = "🚫 *No active order found!* 😢 Looks like you left for a long time.\
+🛒 _No worries!_ Start fresh by adding a product to your cart again. Head back and select your favorite Indomie pack! 🍜🔥"
 
 # ======================= COMMAND HANDLERS =======================
 
@@ -40,7 +43,10 @@ Whether it’s a carton (or more 👀), I’ll hook you up with premium-quality 
 🚚 Delivery? No stress! Your order will land at your hall 🏠 within *7 days* max—guaranteed.
 
 👇 Tap one of the options below to see what magic we can cook up together! 🔥"""
-    bot.send_message(message.chat.id, msg, parse_mode="Markdown", reply_markup=markup)
+    bot.send_message(message.chat.id, 
+        msg, 
+        parse_mode="Markdown", 
+        reply_markup=markup)
 
 
 # /products command handler - List products
@@ -52,7 +58,10 @@ def products(message):
     markup = InlineKeyboardMarkup()
     for product in Product.objects.all():
         markup.add(InlineKeyboardButton(f"{product.title}", callback_data=f"product_{product.id}"))
-    bot.send_message(message.chat.id, "🔥 Time to stock up on Indomie! 🍜 Choose your favorite pack below and let's get cooking! 😋👇", reply_markup=markup)
+    bot.send_message(message.chat.id, 
+        "🔥 *Time to stock up on Indomie!* 🍜 \nChoose your favorite pack below and let's get cooking: 😋👇",
+        parse_mode="Markdown", 
+        reply_markup=markup)
 
 
 # /help command handler
@@ -62,11 +71,15 @@ def help_command(message):
     Provides help information about the bot with a progressive view.
     """
     # Short initial text with a "Continue Reading" button
+
+    # included to stop any register next step handlers from executing
+    bot.clear_step_handler(message)
+
     msg = (
         "*Help Section*\n"
         "*----------------------------------------------------------------------*\n"
-        "👋 Hello, welcome to the help section! I’m here to guide you on how to use this bot to satisfy your Indomie cravings 🍜.\n"
-        "Click the button below to learn more about what I can do for you! 👇"
+        "👋 Hello, welcome to the help section! I'm here to guide you on how to use this bot to satisfy your Indomie cravings 🍜.\n"
+        "Click the button below to learn more about what I can do for you: 👇"
     )
     
     # Create an inline keyboard with a "Continue Reading" button
@@ -74,7 +87,10 @@ def help_command(message):
     keyboard.add(InlineKeyboardButton("📖 Continue Reading", callback_data="help_intro"))
 
     # Send the short initial text
-    bot.send_message(message.chat.id, msg, parse_mode="Markdown", reply_markup=keyboard)
+    bot.send_message(message.chat.id, 
+        msg, 
+        parse_mode="Markdown", 
+        reply_markup=keyboard)
 
 
 
@@ -87,6 +103,9 @@ def view_cart(message):
     user_id = message.from_user.id
     orders = Order.objects.filter(user_id=user_id, payed=False)
 
+    # included to stop any register next step handlers from executing
+    bot.clear_step_handler(message)
+
     if orders.exists():
         msg = "*Hi, Here's your Cart items 🛒:*\n..................☆*: .｡. o(≧▽≦)o .｡.:*☆.....................\n\n"
         markup = InlineKeyboardMarkup()
@@ -96,8 +115,8 @@ def view_cart(message):
             items = OrderItem.objects.filter(order=order)
             order_details = ""
             for item in items:
-                order_details += f"- {item.product.title} x{item.quantity} (₦{item.product.price * item.quantity})\n"
-            msg += f"Order id: #{order.id}:\n{order_details}\n\n"
+                order_details += f"🍜 *{item.product.title}* x {item.quantity} - (₦{item.product.price * item.quantity}) \n*📅 Delivery date:* {order.delivery_date}\n*✅ Delivered:* {order.delivered}\n\n"
+            msg += f"*Order id: #{order.id}* 🛒: \n{order_details}\n\n"
 
         # Add buttons for checkout and remove
         checkout_single = InlineKeyboardButton("Checkout an Order", callback_data="checkout_single_order")
@@ -106,37 +125,52 @@ def view_cart(message):
         # Add buttons to the markup
         markup.add(checkout_single, remove_from_cart)
 
-        bot.send_message(message.chat.id, msg, parse_mode="Markdown", reply_markup=markup)
+        bot.send_message(message.chat.id, 
+            msg, 
+            parse_mode="Markdown", 
+            reply_markup=markup)
     else:
-        bot.send_message(message.chat.id, "Your cart is empty.")
+        bot.send_message(message.chat.id, 
+        "🛒 *Your cart is empty!* 😢 \nLooks like you haven’t added any cartons of Indomie yet. Select your favorite carton(s) and let’s get the party started! 🍜🔥",
+        parse_mode="Markdown")
+
+
 
 
 # /payed_orders command handler
 @bot.message_handler(commands=["payed"])
-def payed_orders(message):
+def view_payed_orders(message):
     """
     Displays the users payed orders and their delivery status
     """
     user_id = message.from_user.id
     orders = Order.objects.filter(user_id=user_id, payed=True)
 
+    # included to stop any register next step handlers from executing
+    bot.clear_step_handler(message)
+
+
     if orders.exists():
-        msg = "*Your Checked out Orders*\n\n"
+        msg = "*Your Checked Out Orders* 🎉\n✨ Your Indomie is on its way! 🚀🍜\n\n"
 
         for order in orders:
             items = OrderItem.objects.filter(order=order).select_related("product")
-            reciept = Reciept.objects.get(order=order)
-            delivery_url = website_link + reverse("paystack_callback") + f"?order_id={reciept.order.id}&trxref={reciept.trxref}&reference={reciept.reference}"
+            receipt = Reciept.objects.get(order=order)
+            delivery_url = website_link + reverse("paystack_callback") + f"?order_id={receipt.order.id}&trxref={receipt.trxref}&reference={receipt.reference}"
             order_details = ""
             for item in items:
-                order_details += f"{item.product.title} x {item.quantity} - (₦{item.product.price * item.quantity}) \n*Delivery date: {order.delivery_date}*\n*Delivered: {order.delivered}*"
+                order_details += f"🍜 *{item.product.title}* x {item.quantity} - (₦{item.product.price * item.quantity}) \n*📅 Delivery date:* {order.delivery_date}\n*✅ Delivered:* {order.delivered}\n\n"
 
-            msg += f"*Order id: #{order.id}*: \n[Click here to see receipt]({delivery_url}) \n{order_details}\n\n"
-            """"""
+            msg += f"*Order id: #{order.id}* 🛒: \n[🎫 Click here to see receipt]({delivery_url}) \n{order_details}\n\n"
         print(msg)
-        bot.send_message(message.chat.id, msg, parse_mode="Markdown")
+        bot.send_message(message.chat.id, 
+            msg, 
+            parse_mode="Markdown")
     else:
-        bot.send_message(message.chat.id, "You haven't checked out any orders \nUse /cart to view unpayed orders \nUse /checkout to checkout an order \nUse /products to view available products")
+        bot.send_message(message.chat.id, 
+                     "*You haven't checked out any orders yet*. 😕\nUse /cart to view unpayed orders 🛒\nUse /checkout to checkout an order 💳\nUse /products to view available products 🍜",
+                     parse_mode="Markdown")
+
 
 
 
@@ -149,16 +183,25 @@ def checkout_single_order_command(message):
     user_id = message.from_user.id
     orders = Order.objects.filter(user_id=user_id, payed=False)
 
+    # included to stop any register next step handlers from executing
+    bot.clear_step_handler(message)
+
     if orders.exists():
         markup = InlineKeyboardMarkup()
         for order in orders:
-            markup.add(InlineKeyboardButton(f"Order id: #{order.id}", callback_data=f"checkout_order_{order.id}"))
-        bot.send_message(message.chat.id, "Select an order to checkout:", reply_markup=markup)
-
-    bot.send_message(message.chat.id, "You have no incomplete orders to checkout.")
+            markup.add(InlineKeyboardButton(f"Order id: #{order.id}", callback_data=f"process_checkout_{order.id}"))
+        bot.send_message(message.chat.id, 
+            "🛒 *Select an order to checkout:* 🎉\nYour Indomie is waiting! 😋 Ready to complete your order?",
+            parse_mode="Markdown",
+            reply_markup=markup)
+    else:
+        bot.send_message(message.chat.id, 
+            "❌ *No unpayed orders found!* 😕\nLooks like you haven't added anything to cart yet. Go ahead and pick some carton(s) of Indomie! 🍜🎉",
+            parse_mode="Markdown")
     
 
-# ======================= CALLBACK HANDLERS =======================
+
+#  ======================= CALLBACK HANDLERS =======================
 
 # Handle callback queries (button clicks)
 @bot.callback_query_handler(func=lambda call: call.data.startswith("order_"))
@@ -166,9 +209,15 @@ def handle_order_callback(call):
     """
     Handles all callback queries from inline buttons.
     """
+
+    # included to stop any register next step handlers from executing
+    bot.clear_step_handler(call.message)
+
     product_id = int(call.data.split("_")[1])
     user_orders[call.from_user.id] = {"product_id": product_id, "quantity": None, "hall": None, "room_no": None}
-    bot.send_message(call.message.chat.id, "Please enter the number of cartons you want to order e.g 5:")
+    bot.send_message(call.message.chat.id, 
+        "*📦 How many cartons of _Indomie_ do you want?* \n😋 Enter a number (e.g., 5) to place your order: 🔢👇",
+        parse_mode="Markdown")
     bot.register_next_step_handler(call.message, get_quantity)
     
     bot.answer_callback_query(call.id)
@@ -181,6 +230,10 @@ def help_callback(call):
     """
     Handles progressive text display for the help command.
     """
+
+    # included to stop any register next step handlers from executing
+    bot.clear_step_handler(call.message)
+
     if call.data == "help_intro":
         # Detailed introduction text
         intro_msg = (
@@ -231,7 +284,7 @@ def help_callback(call):
             "1️⃣ Click on /products and select a product.\n"
             "2️⃣ Click on 'Add to Cart'. 🛍️\n"
             "3️⃣ Enter the number of cartons you need (e.g., 1, 5). 🔢\n"
-            "4️⃣ Enter your email (e.g., youremail@example.com). 📧\n"
+            "4️⃣ Enter your email (e.g., `youremail@example.com`). 📧\n"
             "5️⃣ Enter the full name of the recipient. 👤\n"
             "6️⃣ Choose the recipient's hall (e.g., Paul Hall). 🏢\n"
             "7️⃣ Enter the room number (e.g., A204). 🚪\n\n"
@@ -247,7 +300,6 @@ def help_callback(call):
 
 
 
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith("hall_"))
 def handle_hall_selection(call):
     """
@@ -259,16 +311,24 @@ def handle_hall_selection(call):
         user_orders[user_id]["hall"] = hall
         
         bot.answer_callback_query(call.id)
-        
+        new_msg = f"🏠 Looks like you're in *{hall} Hall!* Awesome! \n\n🎉 Now, drop your room number below so we know exactly where to deliver your carton of _Indomie_! (e.g., *A204*, *B108*) 🍜🚀"
         # Ask for room number
-        msg = bot.send_message(call.message.chat.id, f"So you are located in *{hall} hall* \nNow enter your room number e.g. A204, B108:", parse_mode="Markdown")
+        msg = bot.send_message(call.message.chat.id, 
+            new_msg, 
+            parse_mode="Markdown")
         bot.register_next_step_handler(msg, get_room_no)
     else:
         # Debug: User order not found
         print(f"User {user_id} has no active order.")
         
         bot.answer_callback_query(call.id)
-        bot.send_message(call.message.chat.id, "No active order found. Place order for a new item and try again")
+        # Debug: User order not found
+        print(f"User {user_id} has no active order.")
+        bot.send_message(call.message.chat.id, 
+            no_active_order,
+            parse_mode="Markdown")
+
+
 
 
 @bot.callback_query_handler(func= lambda call: call.data.startswith("product_"))
@@ -277,16 +337,25 @@ def get_product(call):
     Retrieves product details based on the callback data.
     """
     product_id = call.data.split("_")[1]
+
+    # included to stop any register next step handlers from executing
+    bot.clear_step_handler(call.message)
+
     try:
         product = Product.objects.get(id=product_id)
-        msg = f"*{product.title} - ₦{product.price}*\n{product.description}"
+        msg = f"*📦 {product.title}* - 💰 ₦{product.price} 🍜\n📝 {product.description}"
         markup = InlineKeyboardMarkup()
-        markup.add(InlineKeyboardButton("Add to Cart", callback_data=f"order_{product.id}"))
+        markup.add(InlineKeyboardButton("Add to Cart 🛒", callback_data=f"order_{product.id}"))
     except Product.DoesNotExist:
-        msg = "Sorry, this product does not exist."
+        msg = "*❌ Oops! This product seems to have vanished into thin air!* It's probably a problem from our end\n🚀💨 Try selecting another one. 🍜😉"
         markup = None
-    bot.send_message(call.message.chat.id, msg, parse_mode="Markdown", reply_markup=markup)
+    bot.send_message(call.message.chat.id, 
+        msg, 
+        parse_mode="Markdown", 
+        reply_markup=markup)
     bot.answer_callback_query(call.id)
+
+
 
 
 # Handle "Remove an order from cart" callback
@@ -297,6 +366,9 @@ def handle_remove_order_cart(call):
     """
     user_id = call.from_user.id
     orders = Order.objects.filter(user_id=user_id, payed=False)
+
+    # included to stop any register next step handlers from executing
+    bot.clear_step_handler(call.message)
     
     if orders.exists():
         # Create buttons for each order
@@ -304,13 +376,20 @@ def handle_remove_order_cart(call):
         for order in orders:
             total_items = OrderItem.objects.filter(order=order).count()
             callback_data = f"remove_order_{order.id}"  # Use order ID for removal
-            markup.add(InlineKeyboardButton(f"Order id: #{order.id} \nCartons: ({total_items})", callback_data=callback_data))
+            markup.add(InlineKeyboardButton(f"📦 Order ID: #{order.id} \n🛒 Cartons Ordered: ({total_items})", callback_data=callback_data))
         
-        bot.send_message(call.message.chat.id, "Select an order to remove:", reply_markup=markup)
+        bot.send_message(call.message.chat.id, 
+            "*❌ Time to make some space!* \nSelect the order you'd like to remove from your cart: 🛒👇",
+            parse_mode="Markdown",
+            reply_markup=markup)
     else:
-        bot.send_message(call.message.chat.id, "Your cart is empty.")
+        bot.send_message(call.message.chat.id, 
+            "^🛒 Your cart is empty! 😢* \nLooks like you haven't added any cartons of Indomie yet. Select your favorite carton(s) and let’s get the party started! 🍜🔥",
+            parse_mode="Markdown")
     
     bot.answer_callback_query(call.id)
+
+
 
 
 # Handle specific order removal
@@ -320,36 +399,20 @@ def handle_remove_order(call):
     Handles the removal of a specific order.
     """
     order_id = int(call.data.split("_")[2])  # Extract order ID from callback data
-    
+
     try:
         # Find and delete the order along with its items
         order = Order.objects.get(id=order_id)
         order.delete()
         
-        msg = f"Order *#{order_id}* has been removed from your cart. \nClick /cart and confirm"
-        
-        bot.send_message(call.message.chat.id, msg, parse_mode="Markdown")
+        bot.send_message(call.message.chat.id, 
+            f"🚫 *Order #{order_id}* has been removed from your cart. 😢\nWant to double-check? Click /cart to confirm! 🛒✨",
+            parse_mode="Markdown")
+
     except Order.DoesNotExist:
-        bot.send_message(call.message.chat.id, "Order not found. Please try again.")
-    
-    bot.answer_callback_query(call.id)
-
-
-@bot.callback_query_handler(func=lambda call: call.data == "checkout_single_order")
-def checkout_single_order(call):
-    """
-    Prompt the user to select a single order to checkout.
-    """
-    user_id = call.from_user.id
-    orders = Order.objects.filter(user_id=user_id, payed=False)
-
-    if orders.exists():
-        markup = InlineKeyboardMarkup()
-        for order in orders:
-            markup.add(InlineKeyboardButton(f"Order id: #{order.id}", callback_data=f"checkout_order_{order.id}"))
-        bot.send_message(call.message.chat.id, "Select an order to checkout:", reply_markup=markup)
-    else:
-        bot.send_message(call.message.chat.id, "You have no incomplete orders to checkout.")
+        bot.send_message(call.message.chat.id, 
+            "⚠️ *Order not found!* 😕\nLooks like something went wrong. Please try again! 🔄✨",
+            parse_mode="Markdown")
     
     bot.answer_callback_query(call.id)
 
@@ -357,12 +420,16 @@ def checkout_single_order(call):
 
 
 # Handle the checkout callback for a single order
-@bot.callback_query_handler(func=lambda call: call.data.startswith("checkout_order_"))
+@bot.callback_query_handler(func=lambda call: call.data.startswith("process_checkout_"))
 def process_single_checkout(call):
     """
     Handles the checkout for a specific order and redirects to Paystack for payment.
     """
     order_id = int(call.data.split("_")[2])
+
+    # included to stop any register next step handlers from executing
+    bot.clear_step_handler(call.message)
+
     try:
         order = Order.objects.get(id=order_id, payed=False)
         total_amount = 0
@@ -371,7 +438,7 @@ def process_single_checkout(call):
 
         for item in items:
             total_amount += item.product.price * item.quantity
-            item_details += f"- {item.product.title} x{item.quantity} (₦{item.product.price * item.quantity})\n"
+            item_details += f"*📦 {item.product.title} x{item.quantity}* \n💰 Total: ₦{item.product.price * item.quantity} 🍜"
 
         # Create a Paystack transaction request
         payment_url = create_paystack_payment(total_amount, order_id)
@@ -379,12 +446,14 @@ def process_single_checkout(call):
         # Send message with payment link
         bot.send_message(
             call.message.chat.id,
-            f"You're checking out Order id: #{order_id}:\n{item_details}\nTotal: ₦{total_amount}\n\n"
-            "Click the link below to complete your payment:\n" + payment_url
-        )
+            f"*🚀 You're checking out Order id: #{order_id}:* \n{item_details}\n💰 *Total: ₦{total_amount}* 🍜\n\n" 
+            "🎉 Ready to finish up? Click the link below to complete your payment and get your Indomie on the way! 🛒👇\n" + payment_url,
+            parse_mode="Markdown")
         order.save()
     except Order.DoesNotExist:
-        bot.send_message(call.message.chat.id, "Order not found or already checked out.")
+        bot.send_message(call.message.chat.id, 
+            "❌*Order not found or already checked out.* \nPlease try another order 😊",
+            parse_mode="Markdown")
     
     bot.answer_callback_query(call.id)
 
@@ -393,10 +462,16 @@ def process_single_checkout(call):
 # Handle other callbacks without specific query handlers
 @bot.callback_query_handler(func=lambda call: True)
 def handle_other_callbacks(call):
+
+    # included to stop any register next step handlers from executing
+    bot.clear_step_handler(call.message)
+
     if call.data == "products":
         products(call.message)
-    if call.data == "help":
+    elif call.data == "help":
         help_command(call.message)
+    elif call.data == "checkout_single_order":
+        checkout_single_order_command(call.message)
 
     bot.answer_callback_query(call.id)
 # ======================= HELPER FUNCTIONS =======================
@@ -429,7 +504,6 @@ def create_paystack_payment(amount, order_id):
 
 
 
-
 def get_quantity(message):
     """
     Handles the quantity (number of cartons) input from the user.
@@ -439,13 +513,22 @@ def get_quantity(message):
         user_id = message.from_user.id
         if user_id in user_orders and quantity:
             user_orders[user_id]["quantity"] = quantity
-            msg = bot.send_message(message.chat.id, "What's your email?")
+            msg = bot.send_message(message.chat.id, 
+                "📧 Please drop your email so we can keep you updated on your transactions! (e.g., `youremail@example.com`): ✨👇",
+                parse_mode="Markdown")
             bot.register_next_step_handler(msg, get_email)
         else:
-            bot.reply_to(message, "No active order found.")
+            # Debug: User order not found
+            print(f"User {user_id} has no active order.")
+            bot.send_message(message.chat.id, 
+                no_active_order, 
+                parse_mode="Markdown")
     except ValueError:
-        bot.reply_to(message, "Please enter a valid number of cartons.")
+        bot.send_message(message, 
+            "*⚠️ Oops! That doesn’t look like a valid number of cartons. 😕* \nPlease enter a valid number (e.g., 5 cartons) so we can get your order right! 📦✨",
+            parse_mode="Markdown")
         bot.register_next_step_handler(message, get_quantity)  # Retry quantity input
+
 
 
 def get_email(message):
@@ -455,15 +538,21 @@ def get_email(message):
     if re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
         if user_id in user_orders:
             user_orders[user_id]["email"] = email
-            msg = bot.send_message(message.chat.id, "What is the *fullname* of person your order is to be delivered to?", parse_mode="Markdown")
+            msg = bot.send_message(message.chat.id, 
+                "*📛 Who's receiving your delivery?* \n🤩 Please enter their _full name_ below: 👇", 
+                parse_mode="Markdown")
             bot.register_next_step_handler(msg, get_fullname)
         else:
-            bot.reply_to(message, "No active order found")
+            # Debug: User order not found
+            print(f"User {user_id} has no active order.")
+            bot.send_message(message.chat.id, 
+                no_active_order,
+                parse_mode="Markdown")
     else:
-        bot.send_message(message.chat.id, "Please enter a valid email")
+        bot.send_message(message.chat.id, 
+            "*📧 Oops! That doesn't look like a valid email. 😕* \nPlease enter a correct email address (e.g., `youremail@example.com`): ✨👇",
+            parse_mode="Markdown")
         bot.register_next_step_handler(message, get_email)
-
-    
 
 
 
@@ -488,11 +577,17 @@ def get_fullname(message):
             InlineKeyboardButton("Dorcas Hall", callback_data="hall_Dorcas"),
             InlineKeyboardButton("Esther Hall", callback_data="hall_Esther"),
         )
-        bot.send_message(message.chat.id, "Choose your hall:", reply_markup=markup)
+        msg = "🏠 *Where should we deliver your Indomie?* 🍜🚀 \nPlease select the hall for delivery: 👇"
+        bot.send_message(message.chat.id, 
+            msg, 
+            reply_markup=markup, 
+            parse_mode="Markdown")
     else:
-        bot.reply_to(message, "No active order found")
-
-
+        # Debug: User order not found
+        print(f"User {user_id} has no active order.")
+        bot.send_message(message.chat.id, 
+                no_active_order,
+                parse_mode="Markdown")
 
 
 
@@ -504,9 +599,13 @@ def get_room_no(message):
         room_no = message.text
         pattern = "^[A-H]{1}+[1-4]{1}+[0-8]{2}$"
         if re.match(pattern, room_no):
-            bot.reply_to(message, f"Your room number is {room_no}")
+            bot.send_message(message.chat.id, 
+                f"*✅ Great! Your room number is {room_no} 🏠🚪 We’ve got it noted! 🎉*",
+                parse_mode="Markdown")
         else:
-            bot.reply_to(message, "Please enter a valid Room number (e.g., A203).")
+            bot.send_message(message.chat.id,
+                "*⚠️ Oops! That doesn’t seem right.* 😕 \nPlease enter a valid room number (e.g., A203). 🏠🔢",
+                parse_mode="Markdown")
             bot.register_next_step_handler(message, get_room_no)
             return # Exit function if invalid
 
@@ -531,16 +630,23 @@ def get_room_no(message):
                 OrderItem.objects.create(order=order, product=product, quantity=order_data["quantity"])
                 bot.send_message(
                     message.chat.id,
-                    f"Order for {product.title} added to cart. Use /cart to view your cart."
+                    f"*✅ {product.title} has been added to your cart!* 🛒🎉\nUse /cart to check out your tasty selection! 🍜🔥",
+                    parse_mode="Markdown"
                 )
             else:
                 raise Exception
 
         else:
-            bot.reply_to(message, "No active order found.")
+            # Debug: User order not found
+            print(f"User {user_id} has no active order.")
+            bot.send_message(message.chat.id, 
+                no_active_order,
+                parse_mode="Markdown")
 
     except Exception as e:
-        bot.reply_to(message, "Sorry, something went wrong \nThis is probably from our end and not yours \nPlease try again later")
+        bot.send_message(message.chat.id, 
+        "*⚠️ Oops! Something went wrong on our end. 😢* \nNo worries, it’s not your fault! 🙏 Please try again later—we’ll have it fixed soon! 🔧🚀",
+        parse_mode="Markdown")
         print(e)
 
 

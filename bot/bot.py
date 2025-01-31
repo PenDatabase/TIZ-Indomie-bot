@@ -66,7 +66,7 @@ def products(message):
 
 # /help command handler
 @bot.message_handler(commands=["help"])
-def help_command(message):
+def help_command(message, edit=False):
     """
     Provides help information about the bot with a progressive view.
     """
@@ -87,10 +87,18 @@ def help_command(message):
     keyboard.add(InlineKeyboardButton("📖 Continue Reading", callback_data="help_intro"))
 
     # Send the short initial text
-    bot.send_message(message.chat.id, 
-        msg, 
-        parse_mode="Markdown", 
-        reply_markup=keyboard)
+    if edit:
+        bot.edit_message_text(
+            msg,
+            chat_id=message.chat.id,
+            message_id=message.message_id, 
+            parse_mode="Markdown", 
+            reply_markup=keyboard)
+    else:
+        bot.send_message(message.chat.id, 
+            msg, 
+            parse_mode="Markdown", 
+            reply_markup=keyboard)
 
 
 
@@ -234,7 +242,10 @@ def help_callback(call):
     # included to stop any register next step handlers from executing
     bot.clear_step_handler(call.message)
 
-    if call.data == "help_intro":
+    if call.data == "help_edit":
+        help_command(call.message, edit=True)
+
+    elif call.data == "help_intro":
         # Detailed introduction text
         intro_msg = (
             "**#Intro**\n\n"
@@ -245,7 +256,8 @@ def help_callback(call):
             "Ready to see the commands? Tap below! 👇"
         )
         keyboard = InlineKeyboardMarkup()
-        keyboard.add(InlineKeyboardButton("📜 View Commands", callback_data="help_commands"))
+        keyboard.add(InlineKeyboardButton("🔙 Back", callback_data="help_edit"),
+                     InlineKeyboardButton("📜 View Commands", callback_data="help_commands"),)
         bot.edit_message_text(
             intro_msg, 
             chat_id=call.message.chat.id, 
@@ -267,7 +279,8 @@ def help_callback(call):
             "Want to know how to place an order? Tap below! 👇"
         )
         keyboard = InlineKeyboardMarkup()
-        keyboard.add(InlineKeyboardButton("📦 How to Place an Order", callback_data="help_how_to_order"))
+        keyboard.add(InlineKeyboardButton("🔙 Back", callback_data="help_intro"),
+                     InlineKeyboardButton("📦 How to Place an Order", callback_data="help_how_to_order"))
         bot.edit_message_text(
             commands_msg, 
             chat_id=call.message.chat.id, 
@@ -290,11 +303,14 @@ def help_callback(call):
             "7️⃣ Enter the room number (e.g., A204). 🚪\n\n"
             "Use /cart to view your cart and proceed to checkout. Easy, right? 😉"
         )
+        keyboard = InlineKeyboardMarkup()
+        keyboard.add(InlineKeyboardButton("🔙 Back", callback_data="help_commands"),)
         bot.edit_message_text(
             order_msg, 
             chat_id=call.message.chat.id, 
             message_id=call.message.message_id, 
-            parse_mode="Markdown"
+            parse_mode="Markdown",
+            reply_markup=keyboard
         )
 
 

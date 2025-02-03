@@ -184,30 +184,8 @@ def view_payed_orders(message):
 
 # /checkout command handler
 @bot.message_handler(commands=["checkout"])
-def checkout_single_order_command(message, user_id = None):
-    """
-    Prompt the user to select a single order to checkout.
-    """
-    if not user_id:
-        user_id = message.from_user.id
-    orders = Order.objects.filter(user_id=user_id, payed=False)
-
-    # included to stop any register next step handlers from executing
-    bot.clear_step_handler(message) 
-
-    if orders.exists():
-        markup = InlineKeyboardMarkup()
-        for order in orders:
-            markup.add(InlineKeyboardButton(f"Order id: #{order.id}", callback_data=f"process_checkout_{order.id}"))
-        bot.send_message(message.chat.id, 
-            "🛒 *Select an order to checkout:* 🎉\nYour Indomie is waiting! 😋 Ready to complete your order?",
-            parse_mode="Markdown",
-            reply_markup=markup)
-    else:
-        bot.send_message(message.chat.id, 
-            "❌ *No unpayed orders found!* 😕\nLooks like you haven't added anything to cart yet. Go ahead and pick some carton(s) of Indomie! 🍜🎉",
-            parse_mode="Markdown")
-    
+def checkout_command_handler(message):
+    checkout_single_order_command(message, is_callback=False)
 
 
 #  ======================= CALLBACK HANDLERS =======================
@@ -488,7 +466,7 @@ def handle_other_callbacks(call):
     elif call.data == "help":
         help_command(call.message)
     elif call.data == "checkout_single_order":
-        checkout_single_order_command(call.message, user_id = call.from_user.id)
+        checkout_single_order_command(call, is_callback=True)
 
     bot.answer_callback_query(call.id)
 # ======================= HELPER FUNCTIONS =======================
@@ -665,6 +643,42 @@ def get_room_no(message):
         "*⚠️ Oops! Something went wrong on our end. 😢* \nNo worries, it’s not your fault! 🙏 Please try again later—we’ll have it fixed soon! 🔧🚀",
         parse_mode="Markdown")
         print(e)
+
+
+
+
+def checkout_single_order_command(update, is_callback = False):
+    """
+    Prompt the user to select a single order to checkout.
+    """
+    user_id = update.from_user.id
+    orders = Order.objects.filter(user_id=user_id, payed=False)
+
+    if is_callback:
+        chat_id = update.message.chat.id
+        # included to stop any register next step handlers from executing
+        bot.clear_step_handler(update.message)
+    else:
+        chat_id = update.chat.id
+        # included to stop any register next step handlers from executing
+        bot.clear_step_handler(update)
+
+
+    if orders.exists():
+        markup = InlineKeyboardMarkup()
+        for order in orders:
+            markup.add(InlineKeyboardButton(f"Order id: #{order.id}", callback_data=f"process_checkout_{order.id}"))
+    
+        bot.send_message(chat_id, 
+            "🛒 *Select an order to checkout:* 🎉\nYour Indomie is waiting! 😋 Ready to complete your order?",
+            parse_mode="Markdown",
+            reply_markup=markup)
+    else:
+    
+        bot.send_message(chat_id, 
+            "❌ *No unpayed orders found!* 😕\nLooks like you haven't added anything to cart yet. Go ahead and pick some carton(s) of Indomie! 🍜🎉",
+            parse_mode="Markdown")
+    
 
 
 

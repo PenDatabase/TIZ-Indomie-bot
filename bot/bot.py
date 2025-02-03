@@ -184,15 +184,16 @@ def view_payed_orders(message):
 
 # /checkout command handler
 @bot.message_handler(commands=["checkout"])
-def checkout_single_order_command(message):
+def checkout_single_order_command(message, user_id = None):
     """
     Prompt the user to select a single order to checkout.
     """
-    user_id = message.from_user.id
+    if not user_id:
+        user_id = message.from_user.id
     orders = Order.objects.filter(user_id=user_id, payed=False)
 
     # included to stop any register next step handlers from executing
-    bot.clear_step_handler(message)
+    bot.clear_step_handler(message) 
 
     if orders.exists():
         markup = InlineKeyboardMarkup()
@@ -487,7 +488,7 @@ def handle_other_callbacks(call):
     elif call.data == "help":
         help_command(call.message)
     elif call.data == "checkout_single_order":
-        checkout_single_order_command(call.message)
+        checkout_single_order_command(call.message, user_id = call.from_user.id)
 
     bot.answer_callback_query(call.id)
 # ======================= HELPER FUNCTIONS =======================

@@ -37,7 +37,7 @@ WEBSITE_NAME = os.getenv("WEBSITE_NAME")
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if WEBSITE_LINK.startswith == "http:":
+if WEBSITE_LINK.startswith("http:"):
     DEBUG = True
 else:
     DEBUG = False

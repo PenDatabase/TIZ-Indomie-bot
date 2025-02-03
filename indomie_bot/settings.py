@@ -37,7 +37,10 @@ WEBSITE_NAME = os.getenv("WEBSITE_NAME")
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if WEBSITE_LINK.startswith == "http:":
+    DEBUG = True
+else:
+    DEBUG = False
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", f"{WEBSITE_NAME}"]
 

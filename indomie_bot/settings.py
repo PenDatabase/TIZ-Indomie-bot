@@ -33,12 +33,13 @@ TELEGRAM_URL = os.getenv("TELEGRAM_URL")
 TOKEN = os.getenv("TOKEN")
 PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
 WEBSITE_LINK = os.getenv("WEBSITE_LINK")
+WEBSITE_NAME = os.getenv("WEBSITE_NAME")
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "tiz-indomie-bot.up.railway.app"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", f"{WEBSITE_NAME}"]
 
 # to enable csrf token to work when pushing to railway
 CSRF_TRUSTED_ORIGINS = [f'{WEBSITE_LINK}']
